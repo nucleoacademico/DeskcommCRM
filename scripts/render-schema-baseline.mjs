@@ -4,7 +4,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const [, , schemaArg, outputArg] = process.argv;
-const schema = schemaArg?.trim();
+// PostgREST usa o nome do schema também em configurações textuais. Normalizar
+// aqui segue a semântica padrão do PostgreSQL (`CRM_COMM` sem aspas vira
+// `crm_comm`) e evita que o pre-request hook procure um schema com aspas no
+// próprio nome.
+const schema = schemaArg?.trim().toLowerCase();
 
 if (!schema || !/^[A-Za-z_][A-Za-z0-9_$]*$/.test(schema)) {
   throw new Error("uso: node scripts/render-schema-baseline.mjs <schema> [arquivo-de-saida]");
@@ -13,7 +17,10 @@ if (!schema || !/^[A-Za-z_][A-Za-z0-9_$]*$/.test(schema)) {
 const origem = resolve("supabase/baseline.sql");
 const destino = resolve(outputArg || `supabase/baseline.${schema}.sql`);
 const identificador = `"${schema.replaceAll('"', '""')}"`;
-const schemaPrivado = `${schema}_PRIVATE`;
+// PostgreSQL normaliza identificadores não citados para minúsculas. Manter o
+// schema privado na mesma convenção evita nomes mistos difíceis de expor e
+// inspecionar nas ferramentas do Supabase/PostgREST.
+const schemaPrivado = `${schema}_private`;
 const identificadorPrivado = `"${schemaPrivado.replaceAll('"', '""')}"`;
 
 let sql = readFileSync(origem, "utf8");
@@ -60,6 +67,15 @@ for (const extensionObject of ["vector", "vector_cosine_ops", "citext"]) {
 sql = sql
   .replaceAll(`${identificador}."gin_trgm_ops"`, `"public"."gin_trgm_ops"`)
   .replaceAll(`${identificador}.gin_trgm_ops`, `public.gin_trgm_ops`);
+
+// `pgrst.db_pre_request` não é SQL executado neste ponto: é uma configuração
+// textual que o PostgREST resolve depois. Aspas de identificador dentro desse
+// valor passam a fazer parte do nome e produzem `schema ""crm_comm"" does not
+// exist`, portanto o hook deve usar o identificador normalizado sem aspas.
+sql = sql.replaceAll(
+  `pgrst.db_pre_request = '${identificador}.`,
+  `pgrst.db_pre_request = '${schema}.`,
+);
 
 const extensoes = `-- Extensões compartilhadas da instância Supabase (fora do schema do CRM).
 create schema if not exists extensions;
