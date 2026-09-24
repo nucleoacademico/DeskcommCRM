@@ -179,7 +179,7 @@ async function assertHarnessSchema(pool: pg.Pool): Promise<void> {
   const { rows } = await pool.query<{ missing: string }>(
     `select t.name as missing
      from unnest($1::text[]) as t(name)
-     where to_regclass('public.' || t.name) is null`,
+     where to_regclass(t.name) is null`,
     [sentinels],
   );
   if (rows.length > 0) {
@@ -401,7 +401,8 @@ export async function startWorker(
           log,
           loopsAbort.signal,
         )
-      : (log.info('ponte WaCalls OFF — endereço ou credencial ausente no env', {}), Promise.resolve());
+      : (log.info("ponte WaCalls OFF — endereço ou credencial ausente no env", {}),
+        Promise.resolve());
 
   // Circuito de saúde do número (block/response rate → hold).
   const healthLoop = runHealthLoop(

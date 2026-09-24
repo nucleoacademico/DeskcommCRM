@@ -48,13 +48,13 @@ export const PISO_DE_TETO_CENTS = 100;
  *   "sem veto" — a isenção mata a pergunta em vez de deixá-la aberta.)
  */
 export const PURPOSES_ISENTOS = [
-  'connection_test',
-  'jailbreak_detect',
-  'promise_semantic',
+  "connection_test",
+  "jailbreak_detect",
+  "promise_semantic",
 ] as const;
 
 /** `ai_budgets.enforcement_mode`. Nasce `'off'` por DEFAULT do ALTER. */
-export type ModoDeOrcamento = 'off' | 'avisar' | 'bloquear';
+export type ModoDeOrcamento = "off" | "avisar" | "bloquear";
 
 /**
  * A CÓPIA DOS DOIS ITENS DA CENTRAL mora aqui, e não no emissor, porque há DOIS
@@ -66,11 +66,11 @@ export type ModoDeOrcamento = 'off' | 'avisar' | 'bloquear';
  * `warn` vs `critical` é deliberado: o aviso diz que o gasto passou do ponto que
  * a pessoa escolheu e a IA CONTINUA respondendo; a parada diz que algo parou.
  */
-export const AVISO_TITULO = 'O gasto de IA passou do aviso que você definiu';
+export const AVISO_TITULO = "O gasto de IA passou do aviso que você definiu";
 export const AVISO_CORPO =
-  'A IA continua respondendo normalmente — isto é o aviso, não a parada. ' +
-  'Veja quanto já foi gasto e ajuste o limite em Uso de IA › Orçamento.';
-export const BLOQUEIO_TITULO = 'O limite de gasto com IA foi atingido';
+  "A IA continua respondendo normalmente — isto é o aviso, não a parada. " +
+  "Veja quanto já foi gasto e ajuste o limite em Uso de IA › Orçamento.";
+export const BLOQUEIO_TITULO = "O limite de gasto com IA foi atingido";
 
 /**
  * Razão gravada em `conversations.last_handoff_reason` quando o teto de gasto
@@ -84,11 +84,11 @@ export const BLOQUEIO_TITULO = 'O limite de gasto com IA foi atingido';
  * `pg` e o SDK para o bundle do Next). Dois literais seriam duas razões no banco
  * para o mesmo fato, e quem filtrasse por uma acharia metade das conversas.
  */
-export const HANDOFF_REASON_ORCAMENTO = 'orcamento_de_ia';
+export const HANDOFF_REASON_ORCAMENTO = "orcamento_de_ia";
 
 /** Escreve dólar, porque o número É dólar (`pricing.ts` calcula em USD). */
 function emDolares(cents: number): string {
-  return `US$ ${(cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `US$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**
@@ -106,12 +106,12 @@ export function corpoDoBloqueio(gastoCents: number, tetoCents: number): string {
   const pct = tetoCents > 0 ? Math.round((gastoCents / tetoCents) * 100) : 0;
   return (
     `O gasto de IA deste mês chegou a ${emDolares(gastoCents)} de um limite de ${emDolares(tetoCents)} (${pct}%), ` +
-    'e você escolheu que a IA parasse ao chegar nele. ' +
-    'As conversas que estavam sendo atendidas foram para a FILA DE ATENDIMENTO HUMANO — ' +
-    'ninguém ficou sem próximo passo, mas alguém precisa responder. ' +
-    'Aumentar o limite ou desligar a parada em Uso de IA › Orçamento evita paradas NOVAS; ' +
+    "e você escolheu que a IA parasse ao chegar nele. " +
+    "As conversas que estavam sendo atendidas foram para a FILA DE ATENDIMENTO HUMANO — " +
+    "ninguém ficou sem próximo passo, mas alguém precisa responder. " +
+    "Aumentar o limite ou desligar a parada em Uso de IA › Orçamento evita paradas NOVAS; " +
     'cada conversa já parada volta ao automático pelo botão "Devolver ao automático" ' +
-    'no cabeçalho dela.'
+    "no cabeçalho dela."
   );
 }
 
@@ -129,22 +129,22 @@ export const LIMIAR_PADRAO_PCT = 80;
  * AFROUXAR: `'off'` cala tudo, `'avisar'` rebaixa qualquer `bloquear`, `'on'`
  * apenas respeita o que cada organização escolheu — `on` não liga nada.
  */
-export type ChaveDeOrcamento = 'on' | 'avisar' | 'off';
+export type ChaveDeOrcamento = "on" | "avisar" | "off";
 
 /** Por que a chamada seguiu. É enum porque o log e o teste comparam este valor. */
 export type RazaoDeSeguir =
   /** `enforcement_mode = 'off'`: a organização nunca ligou a proteção. */
-  | 'modo_desligado'
+  | "modo_desligado"
   /** `AI_BUDGET_ENFORCEMENT=off`: kill switch do operador da instalação. */
-  | 'chave_de_emergencia'
+  | "chave_de_emergencia"
   /** `purpose` em `PURPOSES_ISENTOS`. */
-  | 'purpose_isento'
+  | "purpose_isento"
   /** Teto ≤ 0 — "sem limite", nunca "bloqueia tudo". */
-  | 'sem_teto'
+  | "sem_teto"
   /** Teto abaixo de `PISO_DE_TETO_CENTS`: baixo demais para ser honrado. */
-  | 'teto_abaixo_do_piso'
+  | "teto_abaixo_do_piso"
   /** Gasto ainda abaixo do limiar de alarme. O caminho normal. */
-  | 'abaixo_do_limiar';
+  | "abaixo_do_limiar";
 
 export interface EntradaDeOrcamento {
   /** `ai_budgets.enforcement_mode`. Linha ausente ⇒ o chamador resolve `'off'`. */
@@ -175,9 +175,9 @@ export interface EntradaDeOrcamento {
 }
 
 export type Veredito =
-  | { acao: 'seguir'; porque: RazaoDeSeguir }
-  | { acao: 'avisar_e_seguir'; porque: 'primeiro_cruzamento' | 'limiar' }
-  | { acao: 'bloquear'; porque: 'teto_atingido' };
+  | { acao: "seguir"; porque: RazaoDeSeguir }
+  | { acao: "avisar_e_seguir"; porque: "primeiro_cruzamento" | "limiar" }
+  | { acao: "bloquear"; porque: "teto_atingido" };
 
 function ehPurposeIsento(purpose: string): boolean {
   return (PURPOSES_ISENTOS as readonly string[]).includes(purpose);
@@ -211,35 +211,35 @@ function ehPurposeIsento(purpose: string): boolean {
 export function decidirOrcamento(entrada: EntradaDeOrcamento): Veredito {
   // (1) Retorno mais cedo de todos. Para 100% das organizações no dia 1 o modo é
   // 'off', e o chamador nem chega a consultar o gasto: menos trabalho que hoje.
-  if (entrada.modo === 'off') {
-    return { acao: 'seguir', porque: 'modo_desligado' };
+  if (entrada.modo === "off") {
+    return { acao: "seguir", porque: "modo_desligado" };
   }
 
   // (2) Kill switch do operador da VPS às 2h da manhã: põe `off`, reinicia, a IA
   // volta — sem psql, sem saber SQL.
-  if (entrada.chave === 'off') {
-    return { acao: 'seguir', porque: 'chave_de_emergencia' };
+  if (entrada.chave === "off") {
+    return { acao: "seguir", porque: "chave_de_emergencia" };
   }
 
   // (3) Diagnóstico e guardrail nunca são recusados por gasto.
   if (ehPurposeIsento(entrada.purpose)) {
-    return { acao: 'seguir', porque: 'purpose_isento' };
+    return { acao: "seguir", porque: "purpose_isento" };
   }
 
   // (4) e (5) — teto sem valor útil não vincula ninguém.
   if (entrada.tetoCents <= 0) {
-    return { acao: 'seguir', porque: 'sem_teto' };
+    return { acao: "seguir", porque: "sem_teto" };
   }
   if (entrada.tetoCents < PISO_DE_TETO_CENTS) {
-    return { acao: 'seguir', porque: 'teto_abaixo_do_piso' };
+    return { acao: "seguir", porque: "teto_abaixo_do_piso" };
   }
 
   const limiarCents = (entrada.tetoCents * entrada.limiarPct) / 100;
   if (entrada.gastoCents < limiarCents) {
-    return { acao: 'seguir', porque: 'abaixo_do_limiar' };
+    return { acao: "seguir", porque: "abaixo_do_limiar" };
   }
   if (entrada.gastoCents < entrada.tetoCents) {
-    return { acao: 'avisar_e_seguir', porque: 'limiar' };
+    return { acao: "avisar_e_seguir", porque: "limiar" };
   }
 
   // Daqui para baixo o gasto JÁ atingiu o teto. Cada recusa restante troca o
@@ -247,42 +247,34 @@ export function decidirOrcamento(entrada: EntradaDeOrcamento): Veredito {
   // o silêncio é que seria a resposta errada.
 
   // Modo 'avisar' é o degrau do meio da escada: acompanha e avisa, nunca para.
-  if (entrada.modo !== 'bloquear') {
-    return { acao: 'avisar_e_seguir', porque: 'limiar' };
+  if (entrada.modo !== "bloquear") {
+    return { acao: "avisar_e_seguir", porque: "limiar" };
   }
 
   // A chave só sabe afrouxar: 'avisar' rebaixa qualquer 'bloquear'.
-  if (entrada.chave === 'avisar') {
-    return { acao: 'avisar_e_seguir', porque: 'limiar' };
+  if (entrada.chave === "avisar") {
+    return { acao: "avisar_e_seguir", porque: "limiar" };
   }
 
   // (6) Carência. `null` nasce da coluna nova e nunca vence — `null <= now()` é
   // `null` no banco, e aqui é uma recusa explícita, não um `undefined` de sorte.
   if (entrada.efetivoEm === null || entrada.agora.getTime() < entrada.efetivoEm.getTime()) {
-    return { acao: 'avisar_e_seguir', porque: 'limiar' };
+    return { acao: "avisar_e_seguir", porque: "limiar" };
   }
 
   // (7) Ninguém é bloqueado sem ter sido avisado.
   if (!entrada.avisadoNesteMes) {
-    return { acao: 'avisar_e_seguir', porque: 'primeiro_cruzamento' };
+    return { acao: "avisar_e_seguir", porque: "primeiro_cruzamento" };
   }
 
-  return { acao: 'bloquear', porque: 'teto_atingido' };
+  return { acao: "bloquear", porque: "teto_atingido" };
 }
 
 /**
  * Grafias que o operador escreve quando quer desligar. Case-insensitive e com
  * trim; `'não'` entra junto com `'nao'` porque o `.toLowerCase()` preserva o til.
  */
-const GRAFIAS_DE_DESLIGADO = new Set([
-  'off',
-  'false',
-  '0',
-  'no',
-  'nao',
-  'não',
-  'disabled',
-]);
+const GRAFIAS_DE_DESLIGADO = new Set(["off", "false", "0", "no", "nao", "não", "disabled"]);
 
 /**
  * `AI_BUDGET_ENFORCEMENT` cru → valor efetivo. QUALQUER outra coisa, inclusive
@@ -299,10 +291,10 @@ const GRAFIAS_DE_DESLIGADO = new Set([
  * env, normalização no código.
  */
 export function normalizarChaveDeOrcamento(v: string | undefined): ChaveDeOrcamento {
-  const bruto = (v ?? '').trim().toLowerCase();
-  if (GRAFIAS_DE_DESLIGADO.has(bruto)) return 'off';
-  if (bruto === 'avisar' || bruto === 'warn') return 'avisar';
-  return 'on';
+  const bruto = (v ?? "").trim().toLowerCase();
+  if (GRAFIAS_DE_DESLIGADO.has(bruto)) return "off";
+  if (bruto === "avisar" || bruto === "warn") return "avisar";
+  return "on";
 }
 
 /**
@@ -319,8 +311,8 @@ export function normalizarChaveDeOrcamento(v: string | undefined): ChaveDeOrcame
  * **sem** `ON_ERROR_STOP`, então esse caso não é hipotético.
  */
 export function normalizarModoDeOrcamento(v: string | null | undefined): ModoDeOrcamento {
-  if (v === 'avisar' || v === 'bloquear') return v;
-  return 'off';
+  if (v === "avisar" || v === "bloquear") return v;
+  return "off";
 }
 
 /**
@@ -346,7 +338,7 @@ with orc as (
    where b.organization_id = $1
 ),
 gasto as (
-  select public.fn_gasto_de_ia_do_mes($1) as spent
+  select fn_gasto_de_ia_do_mes($1) as spent
 ),
 -- Lido ANTES dos inserts: todas as CTEs enxergam o MESMO snapshot, então
 -- \`avisado_antes\` reflete o estado anterior a qualquer insert deste statement.

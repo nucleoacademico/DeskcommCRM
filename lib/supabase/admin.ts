@@ -25,6 +25,7 @@ export function createAdminClient(): SupabaseClient {
   if (_admin) return _admin;
 
   _admin = createSupabaseClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    db: { schema: env.NEXT_PUBLIC_SUPABASE_DB_SCHEMA },
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -35,7 +36,7 @@ export function createAdminClient(): SupabaseClient {
         "X-Client-Info": "deskcomm-crm/admin",
       },
     },
-  });
+  }) as SupabaseClient;
 
   return _admin;
 }

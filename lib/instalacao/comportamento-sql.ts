@@ -20,16 +20,13 @@ import {
 
 /** O mínimo que o pool do `pg` precisa oferecer. */
 export interface ExecutorDeSql {
-  query: (
-    texto: string,
-    valores?: unknown[],
-  ) => Promise<{ rows: Array<Record<string, unknown>> }>;
+  query: (texto: string, valores?: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }>;
 }
 
 const COLUNAS =
   "orcamento_de_ia, exigir_assinatura_no_webhook, divulgacao_de_pagamento, promessa_semantica";
 
-const SQL = `select ${COLUNAS} from public.platform_settings where id = 1`;
+const SQL = `select ${COLUNAS} from platform_settings where id = 1`;
 
 /**
  * A linha única da instalação, ou `null` quando ela não existe — que é resposta,

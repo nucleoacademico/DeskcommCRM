@@ -6,6 +6,7 @@
  */
 
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookieSecure } from "@/lib/supabase/cookie-secure";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
@@ -32,10 +33,11 @@ function opcoesDeCookie(sameSite: "strict" | "lax") {
   };
 }
 
-async function clienteDeServidor(sameSite: "strict" | "lax") {
+async function clienteDeServidor(sameSite: "strict" | "lax"): Promise<SupabaseClient> {
   const cookieStore = await cookies();
 
   return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+    db: { schema: env.NEXT_PUBLIC_SUPABASE_DB_SCHEMA },
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -52,7 +54,7 @@ async function clienteDeServidor(sameSite: "strict" | "lax") {
       },
     },
     cookieOptions: opcoesDeCookie(sameSite),
-  });
+  }) as SupabaseClient;
 }
 
 export async function createClient() {

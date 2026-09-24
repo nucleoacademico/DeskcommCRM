@@ -8,8 +8,10 @@
  */
 
 import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { supabaseDbSchema } from "@/lib/supabase/schema";
 
-let _client: ReturnType<typeof createBrowserClient> | null = null;
+let _client: SupabaseClient | null = null;
 
 /**
  * QUEM DIZ AO SOCKET DO REALTIME QUAL É O TOKEN.
@@ -126,11 +128,12 @@ export function createClient() {
   // <PublicEnvScript/>. Vercel/dev: fallback pro process.env.NEXT_PUBLIC_*
   // (baked em build). Ler a URL do Supabase daqui é o que permite uma única
   // imagem servir qualquer projeto Supabase sem rebuild.
-  const runtime =
-    typeof window !== "undefined" ? window.__PUBLIC_ENV__ : undefined;
+  const runtime = typeof window !== "undefined" ? window.__PUBLIC_ENV__ : undefined;
   const url = runtime?.NEXT_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key =
-    runtime?.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key = runtime?.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const dbSchema = supabaseDbSchema(
+    runtime?.NEXT_PUBLIC_SUPABASE_DB_SCHEMA ?? process.env.NEXT_PUBLIC_SUPABASE_DB_SCHEMA,
+  );
 
   if (!url || !key) {
     throw new Error(
@@ -139,17 +142,27 @@ export function createClient() {
   }
 
   _client = createBrowserClient(url, key, {
+    db: { schema: dbSchema },
     // D-01.01: cookie name canônico alinhado ao middleware/server.
     cookieOptions: {
       name: "sb-deskcomm-auth",
       sameSite: "strict",
       path: "/",
     },
-    realtime: { accessToken: async () => {
-      const token = await tokenDoRealtime();
-      if (!token) throw new Error("Token de tempo real indisponível.");
-      return token;
-    } },
-  });
+    realtime: {
+      accessToken: async () => {
+        const token = await tokenDoRealtime();
+        if (!token) throw new Error("Token de tempo real indisponível.");
+        return token;
+      },
+    },
+  }) as SupabaseClient;
   return _client;
+}
+
+export function browserSupabaseDbSchema(): string {
+  const runtime = typeof window !== "undefined" ? window.__PUBLIC_ENV__ : undefined;
+  return supabaseDbSchema(
+    runtime?.NEXT_PUBLIC_SUPABASE_DB_SCHEMA ?? process.env.NEXT_PUBLIC_SUPABASE_DB_SCHEMA,
+  );
 }

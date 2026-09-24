@@ -1,0 +1,95 @@
+name: crm_deskcomm_beheroes
+
+# Deploy do fork Be Heroes no Dokploy. Os serviços herdam o contrato oficial
+# do projeto; este arquivo troca apenas build, proxy e nomes globais para não
+# colidir com outras aplicações da mesma VPS.
+services:
+  app:
+    extends:
+      file: docker-compose.prod.yml
+      service: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: ${APP_VERSION:-beheroes}
+    image: deskcomm-beheroes-app:${APP_VERSION:-local}
+    pull_policy: never
+    networks:
+      - internal
+      - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "${TRAEFIK_NETWORK:-dokploy-network}"
+
+      traefik.http.routers.crm-deskcomm-beheroes.rule: "Host(`${DOMAIN}`)"
+      traefik.http.routers.crm-deskcomm-beheroes.entrypoints: "${TRAEFIK_ENTRYPOINT:-websecure}"
+      traefik.http.routers.crm-deskcomm-beheroes.tls.certresolver: "${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      traefik.http.routers.crm-deskcomm-beheroes.middlewares: "crm-deskcomm-beheroes-compress"
+      traefik.http.services.crm-deskcomm-beheroes.loadbalancer.server.port: "3000"
+      traefik.http.middlewares.crm-deskcomm-beheroes-compress.compress: "true"
+
+      traefik.http.routers.crm-deskcomm-beheroes-waha-block.rule: "Host(`${DOMAIN}`) && Path(`/api/v1/webhooks/waha`)"
+      traefik.http.routers.crm-deskcomm-beheroes-waha-block.entrypoints: "${TRAEFIK_ENTRYPOINT:-websecure}"
+      traefik.http.routers.crm-deskcomm-beheroes-waha-block.tls.certresolver: "${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      traefik.http.routers.crm-deskcomm-beheroes-waha-block.priority: "1000"
+      traefik.http.routers.crm-deskcomm-beheroes-waha-block.service: "crm-deskcomm-beheroes"
+      traefik.http.routers.crm-deskcomm-beheroes-waha-block.middlewares: "crm-deskcomm-beheroes-deny"
+      traefik.http.middlewares.crm-deskcomm-beheroes-deny.ipallowlist.sourcerange: "192.0.2.1/32"
+
+      traefik.http.routers.crm-deskcomm-beheroes-http.rule: "Host(`${DOMAIN}`)"
+      traefik.http.routers.crm-deskcomm-beheroes-http.entrypoints: "${TRAEFIK_ENTRYPOINT_HTTP:-web}"
+      traefik.http.routers.crm-deskcomm-beheroes-http.middlewares: "crm-deskcomm-beheroes-https"
+      traefik.http.routers.crm-deskcomm-beheroes-http.service: "crm-deskcomm-beheroes"
+      traefik.http.middlewares.crm-deskcomm-beheroes-https.redirectscheme.scheme: "https"
+      traefik.http.middlewares.crm-deskcomm-beheroes-https.redirectscheme.permanent: "true"
+
+  worker:
+    extends:
+      file: docker-compose.prod.yml
+      service: worker
+    image: deskcomm-beheroes-worker:${APP_VERSION:-local}
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+      args:
+        APP_VERSION: ${APP_VERSION:-beheroes}
+
+  waha:
+    extends:
+      file: docker-compose.prod.yml
+      service: waha
+
+  redis:
+    extends:
+      file: docker-compose.prod.yml
+      service: redis
+
+  srh:
+    extends:
+      file: docker-compose.prod.yml
+      service: srh
+
+  scheduler:
+    extends:
+      file: docker-compose.prod.yml
+      service: scheduler
+    image: deskcomm-beheroes-scheduler:${APP_VERSION:-local}
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: Dockerfile.scheduler
+      args:
+        APP_VERSION: ${APP_VERSION:-beheroes}
+
+volumes:
+  waha-data:
+  waha-media:
+
+networks:
+  internal:
+    driver: bridge
+  proxy:
+    external: true
+    name: "${TRAEFIK_NETWORK:-dokploy-network}"

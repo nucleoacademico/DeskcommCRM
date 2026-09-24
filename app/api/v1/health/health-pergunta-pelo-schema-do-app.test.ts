@@ -12,13 +12,13 @@ import { NextRequest } from "next/server";
  * projeto recém-criado, não garantia da plataforma.
  *
  * Medido numa VPS real em 17/09/2026: o projeto Supabase já servia outras
- * aplicações e tinha um schema próprio à frente de `public` na lista. O ping
+ * aplicações e tinha um schema próprio à frente do schema do CRM na lista. O ping
  * procurava `<outro>.organizations`, recebia
  *
  *   404 {"code":"PGRST205","message":"Could not find the table ... in the schema cache"}
  *
  * e a rota declarava `supabase: down`, `status: unhealthy` — com o CRM
- * atendendo, o login renderizando e as tabelas todas de pé em `public`, onde o
+ * atendendo, o login renderizando e as tabelas todas de pé no schema configurado, onde o
  * app de fato lê.
  *
  * ## Por que não é alarme falso de pouca importância
@@ -31,9 +31,8 @@ import { NextRequest } from "next/server";
  *
  * ## A régua
  *
- * Nenhum client do CRM declara `db.schema` (`lib/supabase/*.ts`), então o
- * supabase-js usa o default dele, `public`, e manda `Accept-Profile: public`
- * em toda leitura. A sonda de saúde tem de perguntar pelo MESMO schema — senão
+ * Os clients do CRM declaram `db.schema` (`lib/supabase/*.ts`) a partir de
+ * `NEXT_PUBLIC_SUPABASE_DB_SCHEMA`. A sonda de saúde tem de perguntar pelo MESMO schema — senão
  * ela mede um banco que o app não usa, e o veredito dela não fala do app.
  */
 
@@ -43,6 +42,7 @@ vi.mock("@/lib/env", () => ({
   env: {
     NEXT_PUBLIC_SUPABASE_URL: URL_DO_PROJETO,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "chave-anon-de-teste",
+    NEXT_PUBLIC_SUPABASE_DB_SCHEMA: "CRM_COMM",
     SUPABASE_SERVICE_ROLE_KEY: "chave-de-teste",
     UPSTASH_REDIS_REST_URL: "https://redis-de-teste.exemplo",
     UPSTASH_REDIS_REST_TOKEN: "token-de-teste",
@@ -68,7 +68,7 @@ describe("GET /api/v1/health — o ping do banco declara o schema", () => {
   beforeEach(() => vi.resetModules());
   afterEach(() => vi.unstubAllGlobals());
 
-  it("manda Accept-Profile: public, o mesmo schema que o supabase-js do app usa", async () => {
+  it("manda o schema configurado no Accept-Profile", async () => {
     const chamadas: Parameters<typeof fetch>[] = [];
     vi.stubGlobal("fetch", (...args: Parameters<typeof fetch>) => {
       chamadas.push(args);
@@ -82,7 +82,7 @@ describe("GET /api/v1/health — o ping do banco declara o schema", () => {
     expect(headers, "o ping do Supabase não chegou a sair").not.toBeNull();
     // Sem esta linha o PostgREST resolve no schema default do PROJETO, que não
     // é escolha do CRM. É esta asserção que falha quando o cabeçalho some.
-    expect(headers?.get("Accept-Profile")).toBe("public");
+    expect(headers?.get("Accept-Profile")).toBe("CRM_COMM");
   });
 
   it("não declara o banco caído quando é o schema default do projeto que é outro", async () => {
@@ -93,9 +93,9 @@ describe("GET /api/v1/health — o ping do banco declara o schema", () => {
       if (!alvo.startsWith(URL_DO_PROJETO)) {
         return Promise.resolve(new Response("{}", { status: 200 }));
       }
-      const pediuPublic = new Headers(init?.headers).get("Accept-Profile") === "public";
+      const pediuSchemaDoCrm = new Headers(init?.headers).get("Accept-Profile") === "CRM_COMM";
       return Promise.resolve(
-        pediuPublic
+        pediuSchemaDoCrm
           ? new Response("[]", { status: 200 })
           : new Response(
               JSON.stringify({

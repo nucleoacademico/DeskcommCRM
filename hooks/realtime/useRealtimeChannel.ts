@@ -1,14 +1,13 @@
 "use client";
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
-import { createClient, prepareRealtimeAuthentication } from "@/lib/supabase/browser";
+import {
+  browserSupabaseDbSchema,
+  createClient,
+  prepareRealtimeAuthentication,
+} from "@/lib/supabase/browser";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-export type RealtimeStatus =
-  | "connecting"
-  | "subscribed"
-  | "channel_error"
-  | "timed_out"
-  | "closed";
+export type RealtimeStatus = "connecting" | "subscribed" | "channel_error" | "timed_out" | "closed";
 
 export interface UseRealtimeChannelOpts {
   name: string;
@@ -173,7 +172,10 @@ export function useRealtimeChannel(opts: UseRealtimeChannelOpts): {
           "postgres_changes",
           {
             event: postgresChanges.event,
-            schema: postgresChanges.schema ?? "public",
+            schema:
+              !postgresChanges.schema || postgresChanges.schema === "public"
+                ? browserSupabaseDbSchema()
+                : postgresChanges.schema,
             table: postgresChanges.table,
             ...(postgresChanges.filter ? { filter: postgresChanges.filter } : {}),
           },
@@ -234,7 +236,16 @@ export function useRealtimeChannel(opts: UseRealtimeChannelOpts): {
     };
     // intentionally omit onChange (ref); only re-subscribe when channel topology changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, enabled, instanceId, postgresChanges?.event, postgresChanges?.table, postgresChanges?.filter, postgresChanges?.schema, broadcast?.event]);
+  }, [
+    name,
+    enabled,
+    instanceId,
+    postgresChanges?.event,
+    postgresChanges?.table,
+    postgresChanges?.filter,
+    postgresChanges?.schema,
+    broadcast?.event,
+  ]);
 
   return { status, ultimaEntrega };
 }

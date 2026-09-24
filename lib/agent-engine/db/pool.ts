@@ -15,14 +15,12 @@
  * seu); o default usa o logger estruturado de obs/ para que NENHUM consumidor
  * do seam (testes, scripts) fique exposto ao crash.
  */
-import pg from 'pg';
+import pg from "pg";
 
-import { createLogger } from '../obs/logger';
+import { createLogger } from "../obs/logger";
+import { schemaPostgresEntreAspas, supabaseDbSchema } from "@/lib/supabase/schema";
 
-export function createPool(
-  databaseUrl: string,
-  onError?: (err: Error) => void,
-): pg.Pool {
+export function createPool(databaseUrl: string, onError?: (err: Error) => void): pg.Pool {
   // Knob opcional DB_POOL_MAX (env.ts Zod): teto de conexões por pool. Sem ele, o
   // pg decide (default 10) — o caso de produção. Os testes rodam em paralelo (N
   // pools × maxForks), então setam um teto baixo para não estourar max_connections
@@ -30,18 +28,23 @@ export function createPool(
   const raw = process.env.DB_POOL_MAX;
   const parsed = raw === undefined ? Number.NaN : Number.parseInt(raw, 10);
   const max = Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
-  const pool = new pg.Pool({ connectionString: databaseUrl, max });
+  const schema = supabaseDbSchema(process.env.NEXT_PUBLIC_SUPABASE_DB_SCHEMA);
+  const options =
+    schema === "public"
+      ? undefined
+      : `-c search_path=${schemaPostgresEntreAspas(schema)},extensions,public`;
+  const pool = new pg.Pool({ connectionString: databaseUrl, max, options });
   const handler =
     onError ??
     ((err: Error): void => {
       // mesma disciplina de errMsg do main.ts: 1ª linha truncada, PII fora
-      const error = (err.message.split('\n', 1)[0] ?? '').slice(0, 300);
-      createLogger().error('pool: conexão caiu — recria no próximo uso', { error });
+      const error = (err.message.split("\n", 1)[0] ?? "").slice(0, 300);
+      createLogger().error("pool: conexão caiu — recria no próximo uso", { error });
     });
-  pool.on('connect', (client) => client.on('error', handler));
+  pool.on("connect", (client) => client.on("error", handler));
   // Guarda contra crash na re-emissão do Pool (forma 1). NÃO loga: o mesmo erro
   // já passou pelo listener por-cliente acima (o pg-pool só re-emite 'error' de
   // cliente ocioso, e o 'error' do Client dispara os dois listeners em ordem).
-  pool.on('error', () => undefined);
+  pool.on("error", () => undefined);
   return pool;
 }

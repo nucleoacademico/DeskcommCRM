@@ -10,7 +10,7 @@
  * O arquivo mantém o nome mcp-client.ts porque é o seam que todos os módulos do
  * engine já importam (CrmEdgeConfig) — o conteúdo é a versão fundida.
  */
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export interface CrmEdgeConfig {
   /** admin client (service role) — usado só pelas bordas que chamam handlers do app. */
@@ -26,17 +26,19 @@ export interface CrmEdgeConfig {
 export class CrmTransportError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'CrmTransportError';
+    this.name = "CrmTransportError";
   }
 }
 
 export function crmEdgeConfigFromEnv(env: {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+  SUPABASE_DB_SCHEMA?: string;
 }): CrmEdgeConfig {
   return {
     supabase: createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+      db: { schema: env.SUPABASE_DB_SCHEMA ?? "public" },
       auth: { persistSession: false, autoRefreshToken: false },
-    }),
+    }) as SupabaseClient,
   };
 }

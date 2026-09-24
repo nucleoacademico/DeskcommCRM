@@ -55,9 +55,7 @@ const TIMEOUT_MS = 3_000;
 async function withTimeout<T>(p: Promise<T>, ms = TIMEOUT_MS): Promise<T> {
   return Promise.race([
     p,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`timeout after ${ms}ms`)), ms),
-    ),
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`timeout after ${ms}ms`)), ms)),
   ]);
 }
 
@@ -93,11 +91,10 @@ async function checkSupabase(): Promise<Check> {
           // `agent.sh` usa para REVERTER a imagem. Uma atualização boa era
           // desfeita por uma configuração de painel que o CRM não controla.
           //
-          // Nenhum client do CRM declara `db.schema` (`lib/supabase/*.ts`), e o
-          // default do supabase-js é `public` — então é `public` que o app
-          // usa de verdade, e é o que esta sonda tem de perguntar para estar
-          // medindo o mesmo banco que o app enxerga.
-          "Accept-Profile": "public",
+          // Os clients do CRM declaram o mesmo schema configurável em
+          // `NEXT_PUBLIC_SUPABASE_DB_SCHEMA`; a sonda mede exatamente esse
+          // caminho para não divergir do app.
+          "Accept-Profile": env.NEXT_PUBLIC_SUPABASE_DB_SCHEMA,
         },
         cache: "no-store",
       }),
@@ -149,7 +146,12 @@ async function checkRedis(): Promise<Check> {
   const config = validarConfigRedisRest(url, token);
   if (!config.ok) {
     if (config.reason === "nao_configurado") {
-      return { status: "degraded", latency_ms: 0, error: "not_configured", reason: "nao_configurado" };
+      return {
+        status: "degraded",
+        latency_ms: 0,
+        error: "not_configured",
+        reason: "nao_configurado",
+      };
     }
     return {
       status: "down",
@@ -195,7 +197,12 @@ async function checkWaha(): Promise<Check> {
   const t0 = Date.now();
   const base = env.WAHA_API_BASE_URL;
   if (!base) {
-    return { status: "degraded", latency_ms: 0, error: "not_configured", reason: "nao_configurado" };
+    return {
+      status: "degraded",
+      latency_ms: 0,
+      error: "not_configured",
+      reason: "nao_configurado",
+    };
   }
   try {
     // /api/sessions valida conectividade E autenticação num tiro só. O WAHA Core não
@@ -285,11 +292,7 @@ function semAlvo(check: Check): Check {
 }
 
 export async function GET(req: NextRequest) {
-  const [supabase, redis, waha] = await Promise.all([
-    checkSupabase(),
-    checkRedis(),
-    checkWaha(),
-  ]);
+  const [supabase, redis, waha] = await Promise.all([checkSupabase(), checkRedis(), checkWaha()]);
 
   const verboso = req.nextUrl.searchParams.get("verbose") === "1" && segredoInternoConfere(req);
   const filtrar = verboso ? (c: Check) => c : semAlvo;

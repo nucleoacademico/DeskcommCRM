@@ -20,6 +20,8 @@ import { createClient } from "@supabase/supabase-js";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
+import { supabaseDbSchema } from "../lib/supabase/schema";
+
 /** Lê env do processo; completa com .env / .env.local se rodando localmente. */
 function loadEnv(): Record<string, string> {
   const out: Record<string, string> = { ...process.env } as Record<string, string>;
@@ -55,9 +57,7 @@ const ORG_NAME = env.OWNER_ORG_NAME || "Minha Empresa";
  * `APP_LOCALE=en` não pode derrubar a instalação nem escrever lixo no banco.
  */
 const IDIOMAS_SERVIDOS = ["pt-BR", "es"] as const;
-const APP_LOCALE = (IDIOMAS_SERVIDOS as readonly string[]).includes(
-  (env.APP_LOCALE ?? "").trim(),
-)
+const APP_LOCALE = (IDIOMAS_SERVIDOS as readonly string[]).includes((env.APP_LOCALE ?? "").trim())
   ? (env.APP_LOCALE as string).trim()
   : "pt-BR";
 
@@ -70,17 +70,20 @@ if (!OWNER_EMAIL || !OWNER_PASSWORD) {
 
 /** slug seguro (o tipo da coluna é restrito): minúsculo, hífens, sem acento. */
 function slugify(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40) || "minha-empresa";
+  return (
+    s
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "minha-empresa"
+  );
 }
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { autoRefreshToken: false, persistSession: false },
+  db: { schema: supabaseDbSchema(env.NEXT_PUBLIC_SUPABASE_DB_SCHEMA) },
 });
 
 async function ensureOwnerUser(): Promise<string> {
@@ -158,11 +161,12 @@ async function aplicarProvedorEscolhido(orgId: string): Promise<void> {
     .select("settings")
     .eq("id", orgId)
     .maybeSingle();
-  const settings = ((org as { settings?: Record<string, unknown> } | null)?.settings ?? {}) as Record<
+  const settings = ((org as { settings?: Record<string, unknown> } | null)?.settings ??
+    {}) as Record<string, unknown>;
+  const llm = ((settings["llm"] as Record<string, unknown> | undefined) ?? {}) as Record<
     string,
     unknown
   >;
-  const llm = ((settings["llm"] as Record<string, unknown> | undefined) ?? {}) as Record<string, unknown>;
 
   const { error } = await admin
     .from("organizations")
@@ -246,7 +250,9 @@ async function main(): Promise<void> {
   const orgId = await ensureOrg(ownerId);
   await ensureMembership(ownerId, orgId);
   await ensurePlatformAdmin(ownerId);
-  console.log(`\n✅ Bootstrap completo.\n  dono: ${OWNER_EMAIL}\n  org:  ${orgId}\n  Faça login em ${env.NEXT_PUBLIC_APP_URL || "https://<seu-dominio>"} e conclua o onboarding.`);
+  console.log(
+    `\n✅ Bootstrap completo.\n  dono: ${OWNER_EMAIL}\n  org:  ${orgId}\n  Faça login em ${env.NEXT_PUBLIC_APP_URL || "https://<seu-dominio>"} e conclua o onboarding.`,
+  );
 }
 
 main().catch((err) => {

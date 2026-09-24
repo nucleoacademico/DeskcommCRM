@@ -18,10 +18,8 @@ import {
 } from "@/hooks/ai/useKnowledgeSources";
 import { KnowledgeSourceCard } from "@/components/ai/KnowledgeSourceCard";
 import { NovoMaterialDialog } from "@/components/ai/NovoMaterialDialog";
-import {
-  ChaveDeConhecimento,
-  type EstadoDaChave,
-} from "@/components/ai/ChaveDeConhecimento";
+import { browserSupabaseDbSchema } from "@/lib/supabase/browser";
+import { ChaveDeConhecimento, type EstadoDaChave } from "@/components/ai/ChaveDeConhecimento";
 
 export interface AgenteQueUsa {
   id: string;
@@ -56,7 +54,11 @@ export function AcervoClient({ initialSources, initialChave, agentes }: Props) {
   // é justamente o momento em que a pessoa está olhando para a tela.
   useRealtimeChannel({
     name: "acervo-de-conhecimento",
-    postgresChanges: { event: "*", schema: "public", table: "ai_knowledge_sources" },
+    postgresChanges: {
+      event: "*",
+      schema: browserSupabaseDbSchema(),
+      table: "ai_knowledge_sources",
+    },
     onChange: recarregar,
   });
 
@@ -122,8 +124,7 @@ export function AcervoClient({ initialSources, initialChave, agentes }: Props) {
       {arquivados.length > 0 ? (
         <details className="rounded-lg border border-border p-4" data-testid="acervo-arquivados">
           <summary className="cursor-pointer text-sm font-medium">
-            {arquivados.length}{" "}
-            {arquivados.length === 1 ? t("arquivado") : t("arquivados")}
+            {arquivados.length} {arquivados.length === 1 ? t("arquivado") : t("arquivados")}
           </summary>
           <p className="mt-2 text-xs text-text-muted">
             {t(

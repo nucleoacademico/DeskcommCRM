@@ -28,9 +28,7 @@ const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
  * pra permitir setup parcial (ex: dev sem WAHA quando trabalhando só na UI).
  */
 const required = (name: string) =>
-  isProd
-    ? z.string().min(1, `${name} é obrigatória em produção`)
-    : z.string().default("");
+  isProd ? z.string().min(1, `${name} é obrigatória em produção`) : z.string().default("");
 
 const requiredAlways = (name: string) => z.string().min(1, `${name} é obrigatória`);
 
@@ -68,6 +66,10 @@ const schema = z.object({
   // Supabase — obrigatórias sempre (até pra dev local)
   NEXT_PUBLIC_SUPABASE_URL: requiredAlways("NEXT_PUBLIC_SUPABASE_URL").url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: requiredAlways("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  NEXT_PUBLIC_SUPABASE_DB_SCHEMA: z
+    .string()
+    .regex(/^[A-Za-z_][A-Za-z0-9_$]*$/, "NEXT_PUBLIC_SUPABASE_DB_SCHEMA inválido")
+    .default("public"),
   SUPABASE_SERVICE_ROLE_KEY: requiredAlways("SUPABASE_SERVICE_ROLE_KEY"),
 
   // Cron / interno
@@ -424,14 +426,8 @@ const schema = z.object({
     .transform((v) => v === "true"),
 
   // App URLs
-  NEXT_PUBLIC_APP_URL: z
-    .string()
-    .url()
-    .default("http://localhost:3000"),
-  NEXT_PUBLIC_ADMIN_URL: z
-    .string()
-    .url()
-    .default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+  NEXT_PUBLIC_ADMIN_URL: z.string().url().default("http://localhost:3000"),
   /**
    * URL pública opcional para os webhooks da Meta (WhatsApp Cloud API / canais oficiais).
    * Quando definida, é usada no lugar de NEXT_PUBLIC_APP_URL para compor a URL de callback
