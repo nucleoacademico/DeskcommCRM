@@ -15,19 +15,20 @@
  * A config é lida do DB A CADA chamada (resolveOrgLlmConfig) — trocar modelo/
  * provider/teto é UPDATE na config, sem restart nem deploy.
  */
-import type pg from 'pg';
-import { z } from 'zod';
+import type pg from "pg";
+import { z } from "zod";
 
-import { byteaToBuffer, decryptKey } from '@/lib/crypto/aes_gcm';
+import { byteaToBuffer, decryptKey } from "@/lib/crypto/aes_gcm";
 import {
   LIMIAR_PADRAO_PCT,
   normalizarChaveDeOrcamento,
   normalizarModoDeOrcamento,
   type ChaveDeOrcamento,
   type ModoDeOrcamento,
-} from './orcamento';
-import type { RaciocinioDeepseek } from './providers';
-import type { CacheTtl } from './stable-prefix';
+} from "./orcamento";
+import type { RaciocinioDeepseek } from "./providers";
+import type { CacheTtl } from "./stable-prefix";
+import { DEFAULT_JEV_ROUTING, type JevRoutingConfig } from "./jev-router";
 
 /** Config da camada LLM montada do env validado (padrão crmEdgeConfigFromEnv). */
 export interface LlmEdgeConfig {
@@ -94,12 +95,12 @@ export function llmEdgeConfigFromEnv(env: {
   AI_BUDGET_ENFORCEMENT?: string;
   DEEPSEEK_THINKING?: string;
 }): LlmEdgeConfig {
-  const ttl = env.LLM_CACHE_TTL ?? '1h';
-  if (ttl !== '5m' && ttl !== '1h') {
+  const ttl = env.LLM_CACHE_TTL ?? "1h";
+  if (ttl !== "5m" && ttl !== "1h") {
     throw new Error("LLM_CACHE_TTL inválido — use '5m' ou '1h' (default 1h)");
   }
-  const raciocinio = env.DEEPSEEK_THINKING ?? 'provider';
-  if (raciocinio !== 'provider' && raciocinio !== 'disabled') {
+  const raciocinio = env.DEEPSEEK_THINKING ?? "provider";
+  if (raciocinio !== "provider" && raciocinio !== "disabled") {
     throw new Error("DEEPSEEK_THINKING inválido — use 'provider' ou 'disabled' (default provider)");
   }
   return {
@@ -118,10 +119,10 @@ export function llmEdgeConfigFromEnv(env: {
 
 /** Org sem credencial LLM utilizável — erro tipado, mensagem sem valores (credencial fora). */
 export class LlmNotConfiguredError extends Error {
-  override readonly name = 'llm_not_configured';
+  override readonly name = "llm_not_configured";
   constructor() {
     super(
-      'org sem credencial LLM utilizável — cadastre uma chave BYOK ativa/validada em ai_provider_credentials ou defina ANTHROPIC_API_KEY / OPENAI_API_KEY (fallback de plataforma, conforme o provider do modelo)',
+      "org sem credencial LLM utilizável — cadastre uma chave BYOK ativa/validada em ai_provider_credentials ou defina ANTHROPIC_API_KEY / OPENAI_API_KEY (fallback de plataforma, conforme o provider do modelo)",
     );
   }
 }
@@ -149,7 +150,7 @@ export interface OrcamentoDaOrg {
  * De QUEM é a chave que o resolvedor devolveu. Mesmo vocabulário de
  * `lib/ai/embeddings/chave.ts`, que responde a mesma pergunta para embedding.
  */
-export type OrigemDaChaveLlm = 'credencial_da_organizacao' | 'chave_da_instalacao';
+export type OrigemDaChaveLlm = "credencial_da_organizacao" | "chave_da_instalacao";
 
 export interface OrgLlmConfig {
   provider: string;
@@ -170,6 +171,7 @@ export interface OrgLlmConfig {
   defaultModel: string | null;
   params: Record<string, unknown>;
   enabledModels: string[];
+  routing: JevRoutingConfig;
   orcamento: OrcamentoDaOrg;
   /**
    * `null` = a leitura do orçamento foi normal. Não-nulo = a causa, já pronta
@@ -194,17 +196,42 @@ export interface OrgLlmConfig {
 // que continua sendo jsonb livre.
 const llmSettingsSchema = z
   .object({
-    provider: z.string().min(1).catch('anthropic'),
+    provider: z.string().min(1).catch("anthropic"),
     default_model: z.string().min(1).nullable().catch(null),
     params: z.record(z.string(), z.unknown()).catch({}),
     enabled_models: z.array(z.string()).catch([]),
+    routing: z
+      .object({
+        mode: z.enum(["off", "jev_cascade"]).catch(DEFAULT_JEV_ROUTING.mode),
+        decision_model: z.string().min(1).catch(DEFAULT_JEV_ROUTING.decisionModel),
+        free_model: z.string().min(1).catch(DEFAULT_JEV_ROUTING.freeModel),
+        fallback_model: z.string().min(1).catch(DEFAULT_JEV_ROUTING.fallbackModel),
+        min_confidence: z.number().min(0).max(1).catch(DEFAULT_JEV_ROUTING.minConfidence),
+        timeout_ms: z.number().int().min(500).max(15_000).catch(DEFAULT_JEV_ROUTING.timeoutMs),
+      })
+      .catch({
+        mode: DEFAULT_JEV_ROUTING.mode,
+        decision_model: DEFAULT_JEV_ROUTING.decisionModel,
+        free_model: DEFAULT_JEV_ROUTING.freeModel,
+        fallback_model: DEFAULT_JEV_ROUTING.fallbackModel,
+        min_confidence: DEFAULT_JEV_ROUTING.minConfidence,
+        timeout_ms: DEFAULT_JEV_ROUTING.timeoutMs,
+      }),
   })
   .passthrough()
   .catch({
-    provider: 'anthropic',
+    provider: "anthropic",
     default_model: null,
     params: {},
     enabled_models: [],
+    routing: {
+      mode: DEFAULT_JEV_ROUTING.mode,
+      decision_model: DEFAULT_JEV_ROUTING.decisionModel,
+      free_model: DEFAULT_JEV_ROUTING.freeModel,
+      fallback_model: DEFAULT_JEV_ROUTING.fallbackModel,
+      min_confidence: DEFAULT_JEV_ROUTING.minConfidence,
+      timeout_ms: DEFAULT_JEV_ROUTING.timeoutMs,
+    },
   });
 
 /**
@@ -240,7 +267,7 @@ interface LinhaDeConfig {
 }
 
 const ORCAMENTO_DESLIGADO: OrcamentoDaOrg = {
-  modo: 'off',
+  modo: "off",
   tetoCents: 0,
   efetivoEm: null,
   limiarPct: LIMIAR_PADRAO_PCT,
@@ -255,7 +282,7 @@ const ORCAMENTO_DESLIGADO: OrcamentoDaOrg = {
 function causaDoBanco(err: unknown): string {
   const codigo = (err as { code?: unknown } | null)?.code;
   const texto = err instanceof Error ? err.message : String(err);
-  return `${typeof codigo === 'string' ? codigo : 'sem_sqlstate'}: ${texto}`.slice(0, 300);
+  return `${typeof codigo === "string" ? codigo : "sem_sqlstate"}: ${texto}`.slice(0, 300);
 }
 
 /**
@@ -303,7 +330,7 @@ export async function resolveOrgLlmConfig(
     ({ rows } = await db.query<LinhaDeConfig>(SQL_CONFIG_LEGADO, [organizationId]));
   }
   if (rows.length === 0) {
-    throw new Error('organização inexistente ao resolver config LLM');
+    throw new Error("organização inexistente ao resolver config LLM");
   }
   const linha = rows[0];
   const settings = llmSettingsSchema.parse(linha?.llm ?? {});
@@ -363,16 +390,16 @@ export async function resolveOrgLlmConfig(
       iv: byteaToBuffer(cred.api_key_iv),
       tag: byteaToBuffer(cred.api_key_tag),
     });
-    origemDaChave = 'credencial_da_organizacao';
-  } else if (provider === 'anthropic' && cfg.anthropicApiKey) {
+    origemDaChave = "credencial_da_organizacao";
+  } else if (provider === "anthropic" && cfg.anthropicApiKey) {
     apiKey = cfg.anthropicApiKey;
-    origemDaChave = 'chave_da_instalacao';
-  } else if (provider === 'openai' && cfg.openaiApiKey) {
+    origemDaChave = "chave_da_instalacao";
+  } else if (provider === "openai" && cfg.openaiApiKey) {
     apiKey = cfg.openaiApiKey;
-    origemDaChave = 'chave_da_instalacao';
-  } else if (provider === 'openrouter' && cfg.openrouterApiKey) {
+    origemDaChave = "chave_da_instalacao";
+  } else if (provider === "openrouter" && cfg.openrouterApiKey) {
     apiKey = cfg.openrouterApiKey;
-    origemDaChave = 'chave_da_instalacao';
+    origemDaChave = "chave_da_instalacao";
   } else {
     throw new LlmNotConfiguredError();
   }
@@ -384,6 +411,14 @@ export async function resolveOrgLlmConfig(
     defaultModel: settings.default_model ?? null,
     params: settings.params,
     enabledModels: settings.enabled_models,
+    routing: {
+      mode: settings.routing.mode,
+      decisionModel: settings.routing.decision_model,
+      freeModel: settings.routing.free_model,
+      fallbackModel: settings.routing.fallback_model,
+      minConfidence: settings.routing.min_confidence,
+      timeoutMs: settings.routing.timeout_ms,
+    },
     orcamento,
     orcamentoIndisponivelPorque,
   };

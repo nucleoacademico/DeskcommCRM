@@ -38106,6 +38106,32 @@ begin
   end if;
 end $$;
 
+-- ---- roteadores da OpenRouter (migration 0402) ----
+--
+-- Roteadores não têm preço fixo: o modelo efetivamente escolhido é que cobra.
+update public.ai_models
+   set is_default_for_provider = false
+ where provider = 'openrouter'
+   and model_id <> 'openrouter/auto'
+   and is_default_for_provider;
+
+insert into public.ai_models
+  (provider, model_id, display_name, description, supports_tools,
+   is_default_for_provider, source, synced_at, deprecated_at)
+values
+  ('openrouter', 'openrouter/auto', 'OpenRouter Auto Router',
+   'Escolhe automaticamente o modelo mais adequado considerando capacidade, ferramentas e custo.',
+   true, true, 'manual', now(), null),
+  ('openrouter', 'openrouter/free', 'OpenRouter Free Router',
+   'Seleciona entre modelos gratuitos compatíveis. Usado pela cascata Jev apenas em tarefas simples e de baixo risco.',
+   true, false, 'manual', now(), null)
+on conflict (provider, model_id) do update set
+  display_name = excluded.display_name,
+  description = excluded.description,
+  supports_tools = excluded.supports_tools,
+  is_default_for_provider = excluded.is_default_for_provider,
+  deprecated_at = null;
+
 -- ---- módulo suspenso vira ERRO que o kit reporta (migration 0340) ----
 --
 -- Um comando SEPARADO da reaplicação, de propósito: se ela relançasse, a marca
