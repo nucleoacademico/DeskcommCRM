@@ -84,7 +84,10 @@ function normalizeBaseUrl(raw: string): string {
 
 function phoneDigits(value: unknown): string | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
-  const digits = String(value).replace(/\D/g, "");
+  // JIDs multi-device podem chegar como `553184800544:14@s.whatsapp.net`.
+  // O sufixo depois de `:` identifica o dispositivo, não faz parte do telefone.
+  const address = String(value).split("@", 1)[0]?.split(":", 1)[0] ?? "";
+  const digits = address.replace(/\D/g, "");
   return digits.length >= 8 ? digits : null;
 }
 
