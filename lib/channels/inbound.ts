@@ -1,5 +1,6 @@
 import { ingestSocialInbound, socialPayloadBelongsToSession } from "./social/ingest";
 import { CHANNEL_PROVIDER_SOCIAL } from "./capabilities";
+import { CHANNEL_PROVIDER_UAZAPI, CHANNEL_PROVIDER_Z_API } from "./capabilities";
 /**
  * Entrada de webhook, do lado de dentro do seam.
  *
@@ -42,6 +43,8 @@ import { aplicarEdicaoZernio, ingestZernioInbound } from "./zernio/ingest";
 import { lerEnvelopeZernio } from "./zernio/envelope";
 import { parseZernioEdicao, verifyZernioSignature } from "./zernio/webhook";
 import type { ChannelProvider } from "./types";
+import { directPayloadBelongsToSession, parseDirectWebhook } from "./direct/webhook";
+import type { DirectProvider } from "./direct/credentials";
 
 /** Curto demais para ser segredo — placeholder ou lixo de decrypt. */
 const MIN_SECRET_LEN = 16;
@@ -55,6 +58,7 @@ export interface InboundWebhookInput {
      *  números ligados, "WhatsApp fora do ar" não diz QUAL. */
     display_name?: string | null;
     phone_number?: string | null;
+    provider_external_id?: string | null;
   };
   rawBody: string;
   /** Todos os headers da requisição — cada canal lê o SEU. */
@@ -85,11 +89,16 @@ export function acceptsInboundWebhook(provider: string): boolean {
   // O canal Datafy é opcional da instalação: desligado, a entrada dele não
   // existe — nem para quem tem o token de uma sessão gravada antes.
   if (provider === CHANNEL_PROVIDER_DATAFY) return canalGraphParceiroLigado();
-  return provider === CHANNEL_PROVIDER_ZERNIO || provider === CHANNEL_PROVIDER_SOCIAL;
+  return provider === CHANNEL_PROVIDER_ZERNIO || provider === CHANNEL_PROVIDER_SOCIAL ||
+    provider === CHANNEL_PROVIDER_UAZAPI || provider === CHANNEL_PROVIDER_Z_API;
 }
 
 /** Authenticate before archiving raw payloads. The handler repeats this guard for non-HTTP callers. */
 export function verifyInboundWebhookSignature(provider: string, raw: string, headers: Headers, secret: string | null): boolean {
+  // Estes dois transportes autenticam a entrega pelo token aleatório no path e
+  // pela identidade da instância dentro do payload. Eles não publicam HMAC de
+  // webhook; a segunda checagem acontece em `inboundPayloadBelongsToSession`.
+  if (provider === CHANNEL_PROVIDER_UAZAPI || provider === CHANNEL_PROVIDER_Z_API) return true;
   if (!acceptsInboundWebhook(provider) || !secret || secret.length < MIN_SECRET_LEN) return false;
   // Cada canal assina do seu jeito; o esquema do Datafy está em `graph-parceiro/webhook`.
   if (provider === CHANNEL_PROVIDER_DATAFY) {
@@ -99,6 +108,16 @@ export function verifyInboundWebhookSignature(provider: string, raw: string, hea
 }
 
 export async function inboundPayloadBelongsToSession(admin: SupabaseClient, input: InboundWebhookInput): Promise<boolean> {
+  if (input.session.provider === CHANNEL_PROVIDER_UAZAPI || input.session.provider === CHANNEL_PROVIDER_Z_API) {
+    const sessionRef = input.session.provider_external_id;
+    if (!sessionRef) return false;
+    return directPayloadBelongsToSession(admin, {
+      provider: input.session.provider as DirectProvider,
+      sessionId: input.session.id,
+      sessionRef,
+      rawBody: input.rawBody,
+    });
+  }
   return input.session.provider !== CHANNEL_PROVIDER_SOCIAL || socialPayloadBelongsToSession(
     admin, input.session.organization_id, input.session.id, input.rawBody,
   );
@@ -116,11 +135,67 @@ export async function handleInboundWebhook(
       return zernioInbound(admin, input);
     case CHANNEL_PROVIDER_DATAFY:
       return datafyInbound(admin, input);
+    case CHANNEL_PROVIDER_UAZAPI:
+    case CHANNEL_PROVIDER_Z_API:
+      return directInbound(admin, input, provider as DirectProvider);
     default:
       // Token de um canal que não entra por aqui. É configuração trocada, não
       // ataque — mas processar seria ler o payload com o parser errado.
       return { ok: false, code: "provider_mismatch", message: "canal não recebe por esta rota" };
   }
+}
+
+async function directInbound(
+  admin: SupabaseClient,
+  input: InboundWebhookInput,
+  provider: DirectProvider,
+): Promise<InboundWebhookOutcome> {
+  const sessionRef = input.session.provider_external_id;
+  if (!sessionRef) {
+    return { ok: false, code: "provider_mismatch", message: "sessão sem referência do provedor" };
+  }
+  let events;
+  try {
+    events = parseDirectWebhook(provider, input.rawBody, sessionRef);
+  } catch {
+    return { ok: false, code: "invalid_json", message: "invalid_json" };
+  }
+
+  const outcomes: string[] = [];
+  const now = new Date().toISOString();
+  for (const event of events) {
+    if (event.kind === "inbound") {
+      const result = await ingestMetaInbound(admin, event.message, {
+        organizationId: input.session.organization_id,
+        channelSessionId: input.session.id,
+      });
+      outcomes.push(result.status);
+      continue;
+    }
+    if (event.kind === "status") {
+      const normalized = event.status.toLowerCase();
+      const status = normalized.includes("fail") || normalized.includes("error")
+        ? "failed"
+        : "sent";
+      for (const externalId of event.externalIds) {
+        await admin
+          .from("messages")
+          .update({ status, updated_at: now })
+          .eq("organization_id", input.session.organization_id)
+          .eq("external_id", externalId);
+      }
+      outcomes.push("status");
+      continue;
+    }
+    const connected = /connected|working|logged/i.test(event.status) && !/disconnected/i.test(event.status);
+    await admin
+      .from("channel_sessions")
+      .update({ status: connected ? "WORKING" : "STOPPED", last_health_check_at: now })
+      .eq("id", input.session.id)
+      .eq("organization_id", input.session.organization_id);
+    outcomes.push("connection");
+  }
+  return { ok: true, body: { received: events.length, outcomes } };
 }
 
 async function zernioInbound(

@@ -47,6 +47,8 @@ const FONTE: Record<ProviderDeMensagem, FonteDeTemplates | null> = {
   // Parceiro Graph-compatível: os modelos são os da Cloud API, servidos por uma
   // rota própria (host/token do parceiro).
   datafy: "graph",
+  uazapi: null,
+  z_api: null,
 };
 
 /** `null` quando este canal não trabalha com definições aprovadas. */

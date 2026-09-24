@@ -8,6 +8,7 @@ import { CanalGraphParceiroClient } from "./CanalGraphParceiroClient";
 import { CanalOficialClient } from "./CanalOficialClient";
 import { CanalParceiroClient } from "./CanalParceiroClient";
 import { CanalVozClient } from "./CanalVozClient";
+import { CanaisPorApiClient } from "./CanaisPorApiClient";
 import { ConnectionsClient } from "./ConnectionsClient";
 import { TemplatesClient } from "./TemplatesClient";
 import { TemplatesParceiroClient } from "./TemplatesParceiroClient";
@@ -58,7 +59,9 @@ export function ConexoesShell({
   const params = useSearchParams();
   const abaParam = params.get("aba");
   const aba =
-    abaParam === "sociais"
+    abaParam === "api"
+      ? "api"
+      : abaParam === "sociais"
       ? "sociais"
       : abaParam === "oficial"
       ? "oficial"
@@ -97,6 +100,7 @@ export function ConexoesShell({
             estrito: o dia em que alguém escrever o nome do provider aqui DE VERDADE,
             ele reprova igual. */}
         <TabsTrigger value="numeros">{t("Números por QR")}</TabsTrigger>
+        <TabsTrigger value="api">{t("WhatsApp por API")}</TabsTrigger>
         <TabsTrigger value="oficial">{t("API Oficial (Meta)")}</TabsTrigger>
         {/* "Provedor parceiro" e não a marca: o rótulo da marca vem do servidor
             (`lib/channels/connect`), porque a tela não pode nomear provider — e
@@ -111,6 +115,10 @@ export function ConexoesShell({
 
       <TabsContent value="numeros" className="mt-0">
         <ConnectionsClient wahaConfigured={wahaConfigured} />
+      </TabsContent>
+
+      <TabsContent value="api" className="mt-0">
+        <CanaisPorApiClient />
       </TabsContent>
 
       <TabsContent value="telefonia" className="mt-0">

@@ -892,6 +892,11 @@ const HOSTS_DECLARADOS: Record<string, EntradaDeHost> = {
     motivo:
       "endpoint padrão do canal parceiro que espelha a Cloud API (recorte do #1130), com override por DATAFY_API_BASE_URL. É o destino das chamadas de envio e de validação do token — e o canal só existe numa instalação que o liga (DATAFY_ENABLED).",
   },
+  "api.z-api.io": {
+    categoria: "FORNECEDOR",
+    motivo:
+      "endpoint oficial da Z-API para validar a instância, enviar mensagens e registrar os webhooks. É contrato do fornecedor e a credencial continua sendo do cliente.",
+  },
   // ── painel do fornecedor: texto de tela apontando para o endereço DELE ────
   "platform.openai.com": {
     categoria: "CONSOLE",
@@ -936,6 +941,11 @@ const HOSTS_DECLARADOS: Record<string, EntradaDeHost> = {
     categoria: "AMOSTRA",
     motivo:
       "placeholder do campo de base URL de gateway OpenAI-compatible na tela de provedores: amostra do formato aceito.",
+  },
+  "seu-servidor.uazapi.com": {
+    categoria: "AMOSTRA",
+    motivo:
+      "placeholder do campo Server URL da conexão de WhatsApp por API: mostra o formato HTTPS esperado e nunca é chamado pelo produto sem o operador substituí-lo.",
   },
   "000000000000-xxxxxxxx.apps.googleusercontent.com": {
     categoria: "AMOSTRA",
@@ -1117,6 +1127,9 @@ describe("catraca de host de terceiro no código que embarca", () => {
       // protocolo manda. Entrou aqui porque a régua nova do #914 passou a
       // enxergá-lo, e não porque o produto ganhou host novo.
       "s.whatsapp.net",
+      // Placeholder deliberado do campo Server URL. O host varia por cliente;
+      // esta amostra ensina o formato sem apontar para uma instalação real.
+      "seu-servidor.uazapi.com",
       "tusitio.com",
       // Exemplo de link do WhatsApp gerado pela tela de Conversões (#924). Está
       // aqui, e não em FORNECEDOR, porque o produto NÃO fala com esse host: quem

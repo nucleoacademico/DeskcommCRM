@@ -9290,6 +9290,13 @@ alter table public.channel_sessions
   add column if not exists datafy_waba_id text,
   add column if not exists datafy_token_encrypted bytea;
 
+-- UAZAPI e Z-API (migration 0401): mesmo formato de credencial por sessão.
+alter table public.channel_sessions
+  add column if not exists provider_external_id text,
+  add column if not exists provider_base_url text,
+  add column if not exists provider_token_encrypted bytea,
+  add column if not exists provider_client_token_encrypted bytea;
+
 alter table public.channel_sessions
   drop constraint if exists channel_sessions_provider_check;
 
@@ -9297,7 +9304,7 @@ alter table public.channel_sessions
   add constraint channel_sessions_provider_check
   -- 'wacalls' (0233), 'zernio_social' (0368) e 'datafy' (0387) somados AQUI —
   -- UM bloco só por constraint (não duplicar drop+add por migration).
-  check (provider = any (array['waha'::text, 'meta_cloud'::text, 'zernio'::text, 'wacalls'::text, 'zernio_social'::text, 'datafy'::text]));
+  check (provider = any (array['waha'::text, 'meta_cloud'::text, 'zernio'::text, 'wacalls'::text, 'zernio_social'::text, 'datafy'::text, 'uazapi'::text, 'z_api'::text]));
 
 alter table public.channel_sessions
   drop constraint if exists channel_sessions_provider_ref_check;
@@ -9310,8 +9317,22 @@ alter table public.channel_sessions
     -- é o mesmo intermediário, com outra superfície de canal.
     (provider in ('zernio', 'zernio_social') and zernio_account_id is not null) or
     (provider = 'wacalls'    and wacalls_session_id    is not null) or
-    (provider = 'datafy'     and datafy_phone_number_id is not null)
+    (provider = 'datafy'     and datafy_phone_number_id is not null) or
+    (provider in ('uazapi', 'z_api') and provider_external_id is not null and provider_base_url is not null)
   );
+
+comment on column public.channel_sessions.provider_external_id is
+  'Identificador da instância no provedor de WhatsApp por API. É o sessionRef dos providers uazapi e z_api.';
+comment on column public.channel_sessions.provider_base_url is
+  'Base HTTPS do provedor. Para UAZAPI pode ser o domínio próprio do servidor; para Z-API é a base pública oficial.';
+comment on column public.channel_sessions.provider_token_encrypted is
+  'Token da instância cifrado por fn_encrypt_oauth. Nunca retorna ao browser.';
+comment on column public.channel_sessions.provider_client_token_encrypted is
+  'Token adicional de segurança da conta, quando o provedor oferecer, cifrado por fn_encrypt_oauth.';
+
+create unique index if not exists channel_sessions_direct_provider_ativo_unique
+  on public.channel_sessions (organization_id, provider, provider_external_id)
+  where archived_at is null and provider in ('uazapi', 'z_api');
 
 comment on column public.channel_sessions.zernio_account_id is
   'Identificador da conta conectada NO INTERMEDIÁRIO (accountId), não o phone_number_id da Meta. É o que endereça envio e webhook. Espelhado em lib/channels/session-ref.ts.';
@@ -14405,7 +14426,7 @@ alter table public.webhook_events_log
   drop constraint if exists webhook_events_log_provider_check;
 alter table public.webhook_events_log
   add constraint webhook_events_log_provider_check check (provider in (
-    'waha', 'nuvemshop', 'generic', 'meta_cloud', 'zernio', 'datafy'
+    'waha', 'nuvemshop', 'generic', 'meta_cloud', 'zernio', 'datafy', 'uazapi', 'z_api'
   ));
 
 -- ---- a marca da instalação sai do .env e vai para o banco (migration 0155) ----

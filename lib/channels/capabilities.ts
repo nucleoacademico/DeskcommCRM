@@ -105,6 +105,28 @@ export const CHANNEL_CAPABILITIES: Record<ProviderDeMensagem, ChannelCapabilitie
     groups: "limited",
     costPerMessage: true,
   },
+  // Integrações baseadas no WhatsApp Web. Não têm a janela comercial da Cloud
+  // API, mas continuam sujeitas às políticas e ao risco de bloqueio do número.
+  uazapi: {
+    freeformOutsideWindow: true,
+    requiresTemplates: false,
+    canManageTemplates: false,
+    banRisk: true,
+    minIntervalMs: 1000,
+    voiceNote: "server-convert",
+    groups: "full",
+    costPerMessage: false,
+  },
+  z_api: {
+    freeformOutsideWindow: true,
+    requiresTemplates: false,
+    canManageTemplates: false,
+    banRisk: true,
+    minIntervalMs: 1000,
+    voiceNote: "server-convert",
+    groups: "full",
+    costPerMessage: false,
+  },
 };
 
 /**
@@ -127,6 +149,8 @@ export const CHANNEL_PROVIDER_WAHA: ChannelProvider = "waha";
 export const CHANNEL_PROVIDER_META: ChannelProvider = "meta_cloud";
 export const CHANNEL_PROVIDER_SOCIAL: ChannelProvider = "zernio_social";
 export const CHANNEL_PROVIDER_ZERNIO: ChannelProvider = "zernio";
+export const CHANNEL_PROVIDER_UAZAPI: ChannelProvider = "uazapi";
+export const CHANNEL_PROVIDER_Z_API: ChannelProvider = "z_api";
 /** Parceiro que espelha a Cloud API — canal opcional da instalação, desligado por padrão. */
 export const CHANNEL_PROVIDER_DATAFY: ChannelProvider = "datafy";
 /** Chamada de voz WhatsApp (spec 18). Não transporta mensagem — ver abaixo. */
@@ -153,6 +177,8 @@ export const PROVIDERS_DE_MENSAGEM = [
   "zernio",
   "zernio_social",
   "datafy",
+  "uazapi",
+  "z_api",
 ] as const satisfies readonly ProviderDeMensagem[];
 
 /**

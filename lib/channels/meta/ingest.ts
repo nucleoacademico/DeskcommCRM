@@ -244,7 +244,9 @@ export async function ingestMetaInbound(
       // O webhook oficial entrega o media_id, não um arquivo que o browser
       // consiga abrir. Mantemos um ponteiro opaco para o adapter resolver pela
       // Graph API; sem ele a bolha nem é renderizada e o worker pula a mídia.
-      media_url: e.media ? `meta-media:${e.media.id}` : null,
+      // Parceiros que entram pelo mesmo ingestor já entregam uma URL HTTPS.
+      // A Cloud API entrega só o media_id, que continua usando o ponteiro opaco.
+      media_url: e.media ? (e.media.url ?? `meta-media:${e.media.id}`) : null,
       media_mime: e.media?.mime ?? null,
       sent_at: e.sentAt.toISOString(),
       metadata: {

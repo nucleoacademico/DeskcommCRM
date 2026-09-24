@@ -7,6 +7,8 @@ export function channelBrand(
     case "meta_cloud":
     case "zernio":
     case "datafy":
+    case "uazapi":
+    case "z_api":
     case "wacalls":
       return "whatsapp";
     case "zernio_social":
