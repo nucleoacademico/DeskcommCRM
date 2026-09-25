@@ -1,4 +1,4 @@
--- AUD-012: esta RPC atravessa RLS de propósito para o worker de voz localizar
+-- 0403 / AUD-012: esta RPC atravessa RLS de propósito para o worker de voz localizar
 -- o tenant pelo DNIS. Portanto ela é estritamente service-only: uma sessão de
 -- usuário, mesmo autenticada, não pode enumerar roteamento de outros tenants.
 revoke execute on function public.fn_resolve_inbound_number(text)

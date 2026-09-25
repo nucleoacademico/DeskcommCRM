@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const migration = readFileSync(
   join(
     process.cwd(),
-    "supabase/migrations/20260925221035_restrict_fn_resolve_inbound_number.sql",
+    "supabase/migrations/20260925221035_0403_restrict_fn_resolve_inbound_number.sql",
   ),
   "utf8",
 );
