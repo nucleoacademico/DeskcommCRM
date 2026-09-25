@@ -20,6 +20,7 @@ import {
   type ChannelSessionRef,
 } from "@/lib/channels";
 import { storagePathFor } from "@/lib/messaging/media/types";
+import { resolveInboundMediaMime } from "@/lib/messaging/media/resolve-mime";
 import { logger } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -40,6 +41,7 @@ interface MessageMediaRow {
   media_mime: string | null;
   media_storage_path: string | null;
   metadata: Record<string, unknown> | null;
+  type: string;
 }
 
 export async function persistMessageMedia(row: EventRow): Promise<HandlerResult> {
@@ -54,7 +56,7 @@ export async function persistMessageMedia(row: EventRow): Promise<HandlerResult>
     // Sem a coluna, o worker não tem como pedir o adapter e voltaria a
     // depender de uma função fixa de um canal só.
     .select(
-      "id, organization_id, conversation_id, channel_session_id, media_url, media_mime, media_storage_path, metadata",
+      "id, organization_id, conversation_id, channel_session_id, media_url, media_mime, media_storage_path, metadata, type",
     )
     .eq("id", messageId)
     .eq("organization_id", row.organization_id)
@@ -110,6 +112,16 @@ export async function persistMessageMedia(row: EventRow): Promise<HandlerResult>
       url: msg.media_url,
       hintMime: msg.media_mime,
     });
+    media = {
+      ...media,
+      mime: resolveInboundMediaMime({
+        providerMime: media.mime,
+        metadataMime: msg.media_mime,
+        buffer: media.buffer,
+        sourceUrl: msg.media_url,
+        kind: msg.type,
+      }),
+    };
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     if (isLastAttempt) {

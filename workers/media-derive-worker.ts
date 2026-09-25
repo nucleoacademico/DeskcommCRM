@@ -15,6 +15,7 @@ import { createPool } from "@/lib/agent-engine/db/pool";
 import { env } from "@/lib/env";
 import type { EventRow, HandlerResult } from "@/lib/event-log/dispatcher";
 import { deriveMediaText, type DeriveDeps } from "@/lib/messaging/media/derive";
+import { resolveInboundMediaMime } from "@/lib/messaging/media/resolve-mime";
 import { TIPOS_DERIVAVEIS } from "@/lib/messaging/media/derivable";
 import { deriveVideoText } from "@/lib/messaging/media/video-derive";
 import { apiTranscriptionProvider } from "@/lib/messaging/media/transcription";
@@ -111,6 +112,24 @@ export async function deriveMessageMedia(row: EventRow): Promise<HandlerResult> 
     const dl = await admin.storage.from("whatsapp-media").download(msg.media_storage_path);
     if (dl.error || !dl.data) throw new Error(`storage_download_failed: ${dl.error?.message ?? "no_data"}`);
     const buffer = Buffer.from(await dl.data.arrayBuffer());
+    // Arquivos antigos podem ter sido persistidos como octet-stream e com
+    // extensão .bin. Resolver novamente pelos próprios bytes permite recuperar
+    // o backlog sem baixar outra vez do provider e impede enviar MIME genérico
+    // ao modelo. O helper falha fechado quando nenhum sinal é confiável.
+    const resolvedMime = resolveInboundMediaMime({
+      providerMime: msg.media_mime,
+      buffer,
+      sourceUrl: msg.media_storage_path,
+      kind: msg.type,
+    });
+    if (resolvedMime !== msg.media_mime) {
+      const { error: mimeUpdateError } = await admin
+        .from("messages")
+        .update({ media_mime: resolvedMime })
+        .eq("id", msg.id)
+        .eq("organization_id", msg.organization_id);
+      if (mimeUpdateError) throw new Error(`media_mime_update_failed: ${mimeUpdateError.message}`);
+    }
 
     // Credencial BYOK da org p/ visão (imagem).
     const llmCfg: LlmEdgeConfig = {
@@ -220,7 +239,7 @@ export async function deriveMessageMedia(row: EventRow): Promise<HandlerResult> 
     // cair no endpoint padrão do provedor (ver o comentário lá em cima).
     const deps = buildDeriveDeps(llm, openaiKey, row.organization_id, admin, baseUrlDaVisao, chaveEhDaInstalacao);
 
-    const text = await deriveMediaText(msg.type, buffer, msg.media_mime ?? "application/octet-stream", deps);
+    const text = await deriveMediaText(msg.type, buffer, resolvedMime, deps);
     await admin.from("messages")
       .update({ media_derived_text: text, media_derived_status: "ready" })
       .eq("id", msg.id).eq("organization_id", msg.organization_id);
