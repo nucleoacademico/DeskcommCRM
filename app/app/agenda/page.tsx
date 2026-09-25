@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 
 import {
@@ -10,7 +9,7 @@ import {
 import { donosDaAgenda } from "@/lib/agenda/donos-da-agenda";
 import { lerOcupacaoExterna } from "@/lib/agenda/ocupacao-externa";
 import { PROVEDOR_GOOGLE } from "@/lib/agenda/tipos";
-import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
+import { requirePageAccess } from "@/lib/navigation/require-page-access";
 import { diaDeHojeNoFuso, semanaSemente } from "@/lib/agenda/semana-semente";
 import { fusoUtilizavel } from "@/lib/tempo/fusos";
 import { nomeDoContato, type ContatoNomeavel } from "@/lib/contacts/rotulo-do-contato";
@@ -53,9 +52,7 @@ function contatoDoEmbed(c: ContatoNomeavel | ContatoNomeavel[] | null): string |
 }
 
 export default async function AgendaPage() {
-  const user = await requireAuth();
-  const activeOrg = await resolveActiveOrg(user);
-  if (!activeOrg) redirect("/app");
+  const { user, activeOrg } = await requirePageAccess("/app/agenda");
   const cabecalhos = await headers();
   const origemLocal = origemLocalDosCabecalhos(cabecalhos);
 

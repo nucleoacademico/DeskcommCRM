@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
+import { requirePageAccess } from "@/lib/navigation/require-page-access";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { ROLE_RANK } from "@/lib/auth/types";
 import { Button } from "@/components/ui/button";
@@ -36,14 +36,13 @@ export default async function TeamPage({
   // Valor desconhecido cai na aba padrão em vez de deixar as duas fechadas —
   // link velho ou digitado errado não pode devolver uma tela sem conteúdo.
   const abaInicial = ABAS[aba ?? ""] ?? "members";
-  const user = await requireAuth();
+  const { user, activeOrg } = await requirePageAccess("/app/team");
   // `t` local em vez do hook: esta página é componente de SERVIDOR, e lá o
   // idioma vem resolvido em `user.idioma` (a cadeia pessoa → organização →
   // padrão vive em `lib/auth/server.ts`).
   const t = (texto: string) => traduzir(texto, user.idioma);
-  const activeOrg = await resolveActiveOrg(user);
-  const isAdmin = !!activeOrg && ROLE_RANK[activeOrg.role] >= ROLE_RANK.admin;
-  const isManager = !!activeOrg && ROLE_RANK[activeOrg.role] >= ROLE_RANK.manager;
+  const isAdmin = ROLE_RANK[activeOrg.role] >= ROLE_RANK.admin;
+  const isManager = ROLE_RANK[activeOrg.role] >= ROLE_RANK.manager;
 
   return (
     <div className="flex h-full flex-col gap-6 p-6">

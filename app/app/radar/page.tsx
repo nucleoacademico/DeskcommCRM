@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-
-import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
+import { requirePageAccess } from "@/lib/navigation/require-page-access";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { RiskRadarList } from "./_components/RiskRadarList";
 
@@ -9,9 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Radar" };
 
 export default async function RadarPage() {
-  const user = await requireAuth();
-  const activeOrg = await resolveActiveOrg(user);
-  if (!activeOrg) redirect("/app");
+  const { user } = await requirePageAccess("/app/radar");
   // `t` local em vez do hook: esta página é componente de SERVIDOR, e lá o
   // idioma vem resolvido em `user.idioma` (a cadeia pessoa → organização →
   // padrão vive em `lib/auth/server.ts`), sem reler o `locale` cru.

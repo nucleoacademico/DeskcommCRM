@@ -146,6 +146,7 @@ export const NAV_CATALOG = [
     description: "Quem esfriou e ainda está aberto — o que corre risco de morrer sem resposta.",
     icon: "ClockCountdown",
     group: "atendimento",
+    minRole: "agent",
     sidebar: true,
   },
   {
@@ -166,6 +167,7 @@ export const NAV_CATALOG = [
     description: "O que está marcado, com quem, e quem atende — seu e da equipe.",
     icon: "CalendarBlank",
     group: "atendimento",
+    minRole: "agent",
     sidebar: true,
   },
   {
@@ -210,6 +212,7 @@ export const NAV_CATALOG = [
     icon: "Megaphone",
     group: "crm",
     section: "O dia a dia da venda",
+    minRole: "manager",
     // SÓ NO HUB, como as demais telas de preparação: o quinto item do sidebar do
     // CRM já fez o menu rolar 13px em 900px (e2e `navegacao.spec.ts`), e a
     // campanha é montada de vez em quando, não aberta todo dia.
@@ -648,6 +651,7 @@ export const NAV_CATALOG = [
     icon: "ChartBar",
     group: "analise",
     section: "Os números do período",
+    minRole: "agent",
     sidebar: true,
   },
   {
@@ -733,6 +737,7 @@ export const NAV_CATALOG = [
     icon: "UsersThree",
     group: "organizacao",
     section: "Sua empresa",
+    minRole: "manager",
   },
   {
     // A porta que faltava (issue #144): rodízio de atendimento e restrição de
