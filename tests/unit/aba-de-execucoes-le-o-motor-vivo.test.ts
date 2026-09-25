@@ -95,4 +95,14 @@ describe("aba de Execuções — llm_calls traduzido para a tela", () => {
     const linha = paraLinhaDeExecucao(chamada());
     expect(linha["agent_id"]).toBe(AGENTE);
   });
+
+  it("a prévia é teste, nunca produção, mesmo quando a chamada deu certo", () => {
+    const previa = paraLinhaDeExecucao(chamada({ purpose: "agent_preview" }));
+    expect(previa["is_dry_run"]).toBe(true);
+    expect(previa["tokens_in"]).toBe(22270);
+    expect(previa["tokens_out"]).toBe(115);
+
+    const turno = paraLinhaDeExecucao(chamada({ purpose: "agent_turn" }));
+    expect(turno["is_dry_run"]).toBe(false);
+  });
 });

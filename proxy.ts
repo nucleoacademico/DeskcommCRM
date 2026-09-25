@@ -51,6 +51,9 @@ export async function proxy(request: NextRequest) {
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
+      // O guard de /admin chama uma RPC que vive no schema da instalação.
+      // Sem isto, o client consulta public e nega até o platform_admin válido.
+      db: { schema: env.NEXT_PUBLIC_SUPABASE_DB_SCHEMA },
       cookies: {
         getAll() {
           return request.cookies.getAll();

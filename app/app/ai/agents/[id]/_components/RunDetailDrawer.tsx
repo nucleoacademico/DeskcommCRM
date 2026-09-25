@@ -80,11 +80,11 @@ export function RunDetailDrawer({ run, open, onOpenChange }: Props) {
                 {run.completed_at ? new Date(run.completed_at).toLocaleString() : "—"}
               </Cell>
               <Cell label={t("Tokens (in/out)")}>
-                {(run.tokens_in ?? 0).toLocaleString()} / {(run.tokens_out ?? 0).toLocaleString()}
+                {run.tokens_in?.toLocaleString() ?? "—"} / {run.tokens_out?.toLocaleString() ?? "—"}
               </Cell>
               <Cell label={t("Custo")}>{fmtCost(run.cost_cents)}</Cell>
               <Cell label={t("Latência")}>{fmtLatency(run.latency_ms)}</Cell>
-              <Cell label={t("Steps")}>{run.steps_count ?? 0}</Cell>
+              <Cell label={t("Steps")}>{run.steps_count ?? "—"}</Cell>
             </dl>
 
             {run.error_code || run.error_message ? (
