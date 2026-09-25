@@ -82,6 +82,7 @@ const get = vi.fn(async (bruta?: string): Promise<unknown> => {
 vi.mock("@/lib/api/client", () => ({ apiClient: { get: (url: string) => get(url) } }));
 vi.mock("@/components/feedback/ApiErrorToast", () => ({ showApiError: vi.fn() }));
 vi.mock("@/lib/supabase/browser", () => ({
+  browserSupabaseDbSchema: () => "crm_comm",
   prepareRealtimeAuthentication: vi.fn().mockResolvedValue(undefined),
   createClient: () => ({
     channel: () => ({ on: () => ({ subscribe: () => ({}) }), subscribe: () => ({}) }),

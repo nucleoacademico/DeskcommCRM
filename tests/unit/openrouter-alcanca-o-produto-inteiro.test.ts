@@ -27,7 +27,10 @@ import {
   capacidadeEhConhecida,
   modelCapabilities,
 } from "@/lib/agent-engine/edge/llm/capabilities";
-import { llmEdgeConfigFromEnv } from "@/lib/agent-engine/edge/llm/credentials";
+import {
+  llmEdgeConfigFromEnv,
+  resolveOrgLlmConfig,
+} from "@/lib/agent-engine/edge/llm/credentials";
 
 describe("a chave da OpenRouter chega ao seam", () => {
   it("llmEdgeConfigFromEnv carrega OPENROUTER_API_KEY", () => {
@@ -43,12 +46,26 @@ describe("a chave da OpenRouter chega ao seam", () => {
     expect(cfg.openrouterApiKey).toBeUndefined();
   });
 
-  it("o resolvedor tem o ramo de fallback para openrouter", () => {
-    // Comportamental seria melhor, mas `resolveOrgLlmConfig` exige `pg.Pool` e
-    // decifragem AES — está coberto no invariante com Postgres real. Aqui o
-    // alvo é a existência do RAMO, que é o que faltava.
-    const fonte = readFileSync("lib/agent-engine/edge/llm/credentials.ts", "utf8");
-    expect(fonte).toMatch(/provider === 'openrouter' && cfg\.openrouterApiKey/);
+  it("resolve de fato uma org OpenRouter sem BYOK pela chave da instalação", async () => {
+    let query = 0;
+    const pool = {
+      query: async () =>
+        ++query === 1
+          ? { rows: [{ llm: { provider: "openrouter", default_model: "openrouter/free" } }] }
+          : { rows: [] },
+    } as never;
+
+    const out = await resolveOrgLlmConfig(
+      pool,
+      { openrouterApiKey: "sk-or-v1-plataforma" },
+      "org-qa",
+    );
+
+    expect(out).toMatchObject({
+      provider: "openrouter",
+      apiKey: "sk-or-v1-plataforma",
+      origemDaChave: "chave_da_instalacao",
+    });
   });
 });
 
