@@ -32343,12 +32343,12 @@ returns table (
   from public.phone_numbers
   where number = p_number and is_active
   limit 1;
-$$ language sql security definer stable;
+$$ language sql security definer stable set search_path = '';
 
 -- Regra do item 9 do CLAUDE.md: função nova em public nasce exposta via as
 -- DUAS origens (default privileges + grant implícito a PUBLIC). Revoga as
 -- duas, concede só a service_role (é o worker quem chama, via admin client).
-revoke execute on function public.fn_resolve_inbound_number(text) from public, anon;
+revoke execute on function public.fn_resolve_inbound_number(text) from public, anon, authenticated;
 grant execute on function public.fn_resolve_inbound_number(text) to service_role;
 
 notify pgrst,'reload schema';
