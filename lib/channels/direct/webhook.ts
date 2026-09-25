@@ -7,7 +7,8 @@ import type { DirectProvider } from "./credentials";
 export type DirectWebhookEvent =
   | { kind: "inbound"; message: InboundMessageEvent }
   | { kind: "status"; externalIds: string[]; status: string }
-  | { kind: "connection"; status: string };
+  | { kind: "connection"; status: string }
+  | { kind: "ignored"; reason: "group" | "newsletter" | "unsupported_identity" };
 
 function object(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -23,9 +24,71 @@ function string(...values: unknown[]): string | null {
 function phone(value: unknown): string | null {
   const raw = string(value);
   if (!raw) return null;
-  const withoutJid = raw.split("@")[0] ?? raw;
+  const at = raw.indexOf("@");
+  if (at >= 0) {
+    const suffix = raw.slice(at).toLowerCase();
+    if (suffix !== "@s.whatsapp.net" && suffix !== "@c.us") return null;
+  }
+  const withoutJid = at >= 0 ? raw.slice(0, at) : raw;
   const digits = withoutJid.replace(/\D/g, "");
-  return digits.length >= 8 ? digits : null;
+  // E.164 comporta no máximo 15 dígitos. O teto é o que impede um LID opaco
+  // de voltar a ser projetado na coluna de telefone do contato.
+  return digits.length >= 8 && digits.length <= 15 ? `+${digits}` : null;
+}
+
+function lid(value: unknown, explicit = false): string | null {
+  const raw = string(value);
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+  if (!explicit && !lower.endsWith("@lid")) return null;
+  if (lower.endsWith("@lid")) {
+    const opaque = raw.slice(0, -4);
+    return opaque ? `${opaque}@lid` : null;
+  }
+  // `sender_lid` é um campo tipado pela UAZAPI e pode vir sem o sufixo. Ele é
+  // preservado como identidade opaca; nunca passa pelo normalizador telefônico.
+  return raw;
+}
+
+function jidSuffix(value: string | null): string | null {
+  if (!value) return null;
+  const at = value.indexOf("@");
+  return at >= 0 ? value.slice(at).toLowerCase() : null;
+}
+
+function uazapiIdentity(message: Record<string, unknown>):
+  | {
+      kind: "phone" | "lid";
+      phone: string | null;
+      lid: string | null;
+      chatId: string;
+      from: string;
+    }
+  | { ignored: "group" | "newsletter" | "unsupported_identity" } {
+  const chatId = string(message.chatid, message.chatId, message.from, message.sender) ?? "";
+  const sender = string(message.sender);
+  const suffix = jidSuffix(chatId);
+
+  if (message.isGroup === true || suffix === "@g.us") return { ignored: "group" };
+  if (suffix === "@newsletter" || suffix === "@broadcast") return { ignored: "newsletter" };
+
+  const resolvedPhone = phone(message.sender_pn ?? message.senderPn)
+    ?? phone(sender)
+    ?? phone(chatId);
+  const opaqueLid = lid(message.sender_lid ?? message.senderLid, true)
+    ?? lid(sender)
+    ?? lid(chatId);
+
+  if (!resolvedPhone && !opaqueLid) return { ignored: "unsupported_identity" };
+  const kind: "phone" | "lid" = opaqueLid ? "lid" : "phone";
+  const primary = resolvedPhone ?? opaqueLid!;
+  return {
+    kind,
+    phone: resolvedPhone,
+    lid: opaqueLid,
+    chatId: chatId || primary,
+    from: primary.replace(/^\+/, "").replace(/@lid$/i, ""),
+  };
 }
 
 function date(value: unknown): Date {
@@ -94,9 +157,10 @@ export function parseUazapiWebhook(rawBody: string, sessionRef: string): DirectW
   if (eventType !== "messages" && !eventType.includes("message")) return [];
   const message = object(root.message);
   if (message.fromMe === true || message.wasSentByApi === true) return [];
-  const from = phone(message.sender ?? message.chatid ?? message.from);
   const externalId = string(message.messageid, message.id, root.messageid);
-  if (!from || !externalId) return [];
+  if (!externalId) return [];
+  const identity = uazapiIdentity(message);
+  if ("ignored" in identity) return [{ kind: "ignored", reason: identity.ignored }];
   const type = mediaType(string(message.messageType, message.type));
   const content = object(message.content);
   const text = string(message.text, content.text, content.caption, message.caption);
@@ -107,7 +171,13 @@ export function parseUazapiWebhook(rawBody: string, sessionRef: string): DirectW
       wabaId: "",
       phoneNumberId: sessionRef,
       externalId,
-      from,
+      from: identity.from,
+      whatsappIdentity: {
+        kind: identity.kind,
+        phone: identity.phone,
+        lid: identity.lid,
+        chatId: identity.chatId,
+      },
       profileName: string(message.senderName, message.pushName, message.chatName),
       sentAt: date(message.messageTimestamp ?? message.timestamp ?? root.timestamp),
       type,

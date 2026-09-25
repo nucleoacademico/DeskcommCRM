@@ -34,7 +34,7 @@ import { extrairAtribuicaoMeta } from "../atribuicao-de-anuncio-oficial";
 import { aplicarEfeitosPosEntrada } from "../pos-entrada";
 import { encontrarContatoPorTelefone } from "../contato-por-telefone";
 import { marcarConversaComMensagem } from "../marcar-conversa";
-import { canonicalPhoneBR, phoneLookupVariants } from "../phone-variants";
+import { canonicalPhoneBR } from "../phone-variants";
 import type { ChannelTenantScope } from "../types";
 import type { InboundMessageEvent } from "./webhook";
 
@@ -169,6 +169,16 @@ export async function ingestMetaInbound(
   if (!sessao) return { status: "no_session" };
 
   const orgId = sessao.organization_id;
+  const directIdentity = e.whatsappIdentity;
+  const identity = directIdentity ?? {
+    kind: "phone" as const,
+    phone: `+${e.from.replace(/\D/g, "")}`,
+    lid: null,
+    chatId: e.from,
+  };
+  const internalIdentity = identity.phone
+    ? { kind: "phone" as const, phone: identity.phone, lid: null }
+    : { kind: "lid" as const, phone: null, lid: identity.lid };
 
   // ── O NÚMERO INTERNO DE AVISOS NÃO VIRA ATENDIMENTO ─────────────────────
   //
@@ -177,11 +187,7 @@ export async function ingestMetaInbound(
   // dígitos (`wa_id`), e o `+` é o que a comparação por variantes do nono dígito
   // espera — quem casa é a mesma regra dos outros dois ingestores.
   if (
-    await ehNumeroInternoDeAviso(admin, orgId, {
-      kind: "phone",
-      phone: `+${e.from.replace(/\D/g, "")}`,
-      lid: null,
-    })
+    await ehNumeroInternoDeAviso(admin, orgId, internalIdentity)
   ) {
     await registrarMensagemIgnorada(admin, orgId, {
       direction: "inbound",
@@ -190,21 +196,25 @@ export async function ingestMetaInbound(
     return { status: "ignored", reason: "numero_interno_de_aviso" };
   }
 
-  const existente = await findContactByVariants(admin, orgId, e.from);
+  const existente = identity.phone
+    ? await findContactByVariants(admin, orgId, identity.phone)
+    : null;
   // Celular BR grava COM o nono. A busca acima já reencontra a grafia sem o 9;
   // a RPC promove o cadastro antigo quando ainda está nos 12 dígitos.
   const phone = existente?.phone_number
     ? canonicalPhoneBR(existente.phone_number)
-    : canonicalPhoneBR(`+${e.from.replace(/\D/g, "")}`);
+    : identity.phone
+      ? canonicalPhoneBR(identity.phone)
+      : null;
 
   const { data: contactId, error: erroContato } = await admin.rpc(
     "fn_upsert_wa_contact" as never,
     {
       p_org: orgId,
-      p_kind: "phone",
+      p_kind: identity.kind,
       p_phone: phone,
-      p_lid: null,
-      p_chat_id: e.from,
+      p_lid: identity.lid,
+      p_chat_id: identity.chatId,
       p_notify: e.profileName,
     } as never,
   );

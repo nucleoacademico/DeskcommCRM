@@ -108,6 +108,19 @@ export interface InboundMessageEvent {
    * contato TEM de usar `phoneLookupVariants`, senão duplica a pessoa.
    */
   from: string;
+  /**
+   * Identidade normalizada por conectores que recebem JIDs/LIDs. A Cloud API
+   * não precisa preenchê-la porque `from` é sempre o `wa_id` telefônico; já
+   * provedores diretos podem entregar um LID opaco em `sender` e o telefone
+   * resolvido separadamente em `sender_pn`.
+   */
+  whatsappIdentity?: {
+    kind: "phone" | "lid";
+    phone: string | null;
+    lid: string | null;
+    /** JID da conversa preservado sem conversão para número. */
+    chatId: string;
+  };
   profileName: string | null;
   sentAt: Date;
   /** `text` | `audio` | `image` | `video` | `document` | `sticker` | `contact` | … */

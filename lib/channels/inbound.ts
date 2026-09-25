@@ -164,6 +164,10 @@ async function directInbound(
   const outcomes: string[] = [];
   const now = new Date().toISOString();
   for (const event of events) {
+    if (event.kind === "ignored") {
+      outcomes.push(`ignored:${event.reason}`);
+      continue;
+    }
     if (event.kind === "inbound") {
       const result = await ingestMetaInbound(admin, event.message, {
         organizationId: input.session.organization_id,
