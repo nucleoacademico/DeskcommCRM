@@ -30,6 +30,10 @@ const DIR_CRON = join(RAIZ, "app", "api", "v1", "cron");
 // do cron à internet da VPS. A cerca continua a mesma; só a fonte da verdade do
 // "o que roda" mudou de arquivo.
 const CRONTAB = join(RAIZ, "docker", "scheduler", "entrypoint.sh");
+// Compatibilidade HTTP deliberada, sem relógio: o runtime nativo foi aposentado
+// e a rota responde `deprecated` para callers antigos. Mantê-la aqui torna a
+// exceção explícita e impede que volte ao scheduler por acidente.
+const ROTAS_APOSENTADAS = new Set(["agent-dispatcher"]);
 
 /** As rotas que existem, lidas do disco — não de uma lista mantida à mão. */
 function rotasNoCodigo(): string[] {
@@ -56,13 +60,20 @@ describe("rotas de cron × agendamento no self-host", () => {
   });
 
   it("toda rota de cron do código está agendada no scheduler", () => {
-    const naoAgendadas = rotasNoCodigo().filter((r) => !rotasAgendadas().includes(r));
+    const naoAgendadas = rotasNoCodigo().filter(
+      (r) => !ROTAS_APOSENTADAS.has(r) && !rotasAgendadas().includes(r),
+    );
     expect(
       naoAgendadas,
       `Rota(s) de cron sem linha no crontab de docker/scheduler/entrypoint.sh: ` +
         `${naoAgendadas.join(", ")}. Num self-host elas NUNCA rodam, e a feature não dá erro — ` +
         `só não acontece. Adicione a linha (ou apague a rota, se ela morreu).`,
     ).toEqual([]);
+  });
+
+  it("rota aposentada continua compatível, mas não consome scheduler", () => {
+    expect(rotasNoCodigo()).toEqual(expect.arrayContaining([...ROTAS_APOSENTADAS]));
+    expect(rotasAgendadas()).not.toEqual(expect.arrayContaining([...ROTAS_APOSENTADAS]));
   });
 
   it("todo agendamento aponta para uma rota que existe", () => {

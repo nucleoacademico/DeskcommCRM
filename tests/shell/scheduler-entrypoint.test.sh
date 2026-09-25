@@ -12,8 +12,9 @@
 #    arbitrária a cada minuto. Aqui o teste monta o header com um `sh` DE VERDADE,
 #    como o crond faria, e compara byte a byte.
 #
-# 2. NENHUMA ROTA SE PERDE. O crontab saiu do `command:` inline do compose e veio
-#    para cá; a contagem tem de bater com app/api/v1/cron. (A cerca principal é
+# 2. NENHUMA ROTA ATIVA SE PERDE. O crontab saiu do `command:` inline do compose
+#    e veio para cá; a contagem bate com o diretório menos a rota aposentada
+#    `agent-dispatcher`, mantida só como compatibilidade HTTP. (A cerca principal é
 #    tests/unit/cron-routes-scheduled.test.ts; esta aqui pega o caso em que o
 #    arquivo GERADO diverge da lista escrita, que aquele teste não vê.)
 #
@@ -58,8 +59,11 @@ RC="$(rodar 'segredo-simples')"
 check "o entrypoint termina com sucesso" test "$RC" -eq 0
 ROTAS_CODIGO="$(find app/api/v1/cron -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
 ROTAS_CRONTAB="$(grep -oE 'api/v1/cron/[a-z0-9-]+' "$TMP/crontab" | sort -u | wc -l | tr -d ' ')"
-check "as $ROTAS_CODIGO rotas do código estão no crontab (achei $ROTAS_CRONTAB)" \
-  test "$ROTAS_CODIGO" -eq "$ROTAS_CRONTAB"
+ROTAS_ATIVAS="$((ROTAS_CODIGO - 1))"
+check "as $ROTAS_ATIVAS rotas ativas estão no crontab (achei $ROTAS_CRONTAB)" \
+  test "$ROTAS_ATIVAS" -eq "$ROTAS_CRONTAB"
+check "agent-dispatcher aposentado não voltou ao relógio" \
+  test "$(grep -c 'api/v1/cron/agent-dispatcher' "$TMP/crontab")" -eq 0
 check "uma linha por cron, nenhuma vazia" \
   test "$(grep -c . "$TMP/crontab")" -eq "$(wc -l < "$TMP/crontab" | tr -d ' ')"
 
