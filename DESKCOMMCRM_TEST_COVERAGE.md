@@ -1,0 +1,98 @@
+# Cobertura da auditoria DeskcommCRM
+
+> Matriz viva. “Inventariado” significa que a superfície foi localizada; não
+> significa que foi testada. Última atualização: 25/09/2026.
+
+## Critério de conclusão
+
+Uma linha só recebe ✅ FUNCIONANDO E VALIDADA quando a jornada foi executada no
+ambiente online, produziu o efeito esperado, persistiu após recarga e não gerou
+erro relevante nos registros observáveis. O status do módulo é o pior status de
+suas jornadas críticas, não uma média.
+
+## Matriz funcional principal
+
+| Área | Página/jornada | Abrir | Ler | Criar | Editar | Excluir/cancelar | Persistência/reload | Papel/RLS | Mobile | Estado atual |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Auth | Login/logout/sessão | login 4 papéis sim | — | — | — | logout pendente | sessão por papel sim | parcial | parcial | 🟡 FUNCIONANDO PARCIALMENTE |
+| Auth | Recuperar e trocar senha | observado | — | falhou entrega | pendente | — | pendente | pendente | pendente | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
+| Auth | MFA | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Auth | Convite/cadastro/onboarding | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Atendimento | Inbox e conversa | pendente | parcial | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Atendimento | Radar | sim | viewer recebe 403 da API | — | pendente | — | pendente | divergente | desktop | 🟡 FUNCIONANDO PARCIALMENTE |
+| Atendimento | Agenda | sim | parcial | bloqueado por configuração | pendente | pendente | pendente | pendente | pendente | 🟡 FUNCIONANDO PARCIALMENTE |
+| Atendimento | Respostas rápidas | sim | sim | sim | sim | sim | sim após reload | admin validado | desktop | ✅ FUNCIONANDO E VALIDADA |
+| CRM | Funis/quadro/etapas | sim | sim | lead sim | lead sim | pendente | sim | pendente | pendente | 🟡 FUNCIONANDO PARCIALMENTE |
+| CRM | Contatos/Customer 360 | sim | sim | sim | sim | excluir sim | sim após reload | admin validado | desktop | ✅ FUNCIONANDO E VALIDADA |
+| CRM | Contatos — LGPD/merge/importação | inventariado | parcial | import pendente | merge pendente | anonimizar pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| CRM | Tarefas | sim | sim | sim | sim | concluir/reabrir/excluir sim | sim após reload | admin validado | desktop | ✅ FUNCIONANDO E VALIDADA |
+| CRM | Campanhas | sim | viewer/agent recebem 403 da API | pendente | pendente | pendente | pendente | divergente | desktop | 🟡 FUNCIONANDO PARCIALMENTE |
+| CRM | Prospecção | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| CRM | Produtos | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| CRM | Comandas/financeiro | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| CRM | Chamadas | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| IA | Agentes/versões/preview | sim | sim | existente | pendente | pendente | preview sim | pendente | pendente | 🟡 FUNCIONANDO PARCIALMENTE |
+| IA | Publicação e turno real | pendente | agente só em draft | pendente | pendente | pendente | 93 dispatches consumidos sem versão publicada | pendente | pendente | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
+| IA | Follow-ups | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| IA | Roteadores | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| IA | Provedores/credenciais/modelos | pendente | parcial | existente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| IA | Conhecimento/RAG | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| IA | Memória, skills e casos | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| IA | Alertas, propostas e evolução | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| IA | Execuções, uso e orçamento | pendente | pendente | — | pendente | — | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Canais | Conexões/UAZAPI geral | sim | parcial | existente | pendente | pendente | 78 RPCs 200 e seis 400 | pendente | pendente | 🟡 FUNCIONANDO PARCIALMENTE |
+| Canais | UAZAPI entrada por LID/PN | — | — | seis eventos recusados | — | — | contato/conversa/mensagem não criados | — | — | 🔴 NÃO FUNCIONANDO |
+| Canais | Mídia UAZAPI + derivação IA | parcial | parcial | 20 pedidos | — | — | 11 dead; 9 prontos/pulados | — | — | 🟡 FUNCIONANDO PARCIALMENTE |
+| Canais | Z-API | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Canais | Meta WhatsApp Cloud | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Canais | Webhooks de entrada | sim | sim | sim | desativar sim | chamada recusada após desativar | sim | pendente | pendente | 🟡 FUNCIONANDO PARCIALMENTE |
+| Canais | Webhooks de saída/SSRF | pendente | pendente | pendente | pendente | pendente | pendente | pendente | — | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Canais | Nuvemshop | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Análise | Desempenho/métricas | sim | viewer recebe 403 da API | — | filtros pendentes | — | pendente | divergente | desktop | 🟡 FUNCIONANDO PARCIALMENTE |
+| Análise | Faturamento | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Análise | Meta Ads | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
+| Análise | Atividades e Audit Log | pendente | parcial no banco | — | filtros pendentes | — | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Organização | Perfil e segurança | pendente | pendente | — | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Organização | Notificações web | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
+| Organização | Equipe/distribuição/papéis | sim | viewer/agent recebem 403 da API | pendente | pendente | pendente | pendente | divergente | desktop | 🟡 FUNCIONANDO PARCIALMENTE |
+| Organização | Tags/conversões/marca/billing | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Organização | LGPD | parcial | parcial | export pendente | pendente | redact pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Organização | API tokens | pendente | pendente | pendente | pendente | revogar pendente | pendente | pendente | — | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Organização | SIP/voz | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Organização | Extensões | pendente | pendente | pendente | pendente | pendente | pendente | pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Organização | Banco externo | oculto/desligado | — | — | — | — | — | admin | — | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
+| Plataforma | `/admin` e 28 páginas protegidas | pendente | pendente | pendente | pendente | pendente | pendente | platform_admin pendente | pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+
+## Cobertura estrutural e operacional
+
+| Controle | Evidência atual | Estado |
+|---|---|---|
+| Health do app | Supabase, Redis e WAHA `ok` | ✅ FUNCIONANDO E VALIDADA |
+| Redirecionamento sem sessão | `/app/crm` → `/login?next=...` | ✅ FUNCIONANDO E VALIDADA |
+| Páginas privadas sem sessão | 88 rotas estáticas: 87 para login; forbidden pública sem dados | ✅ FUNCIONANDO E VALIDADA |
+| APIs GET sem sessão | 141 rotas: dados protegidos por 401/403; callbacks falham seguro; 0×5xx | ✅ FUNCIONANDO E VALIDADA |
+| RLS habilitado | 170/170 tabelas `crm_comm` | ✅ FUNCIONANDO E VALIDADA |
+| RLS sem membership | leituras de organização/contatos/leads/mensagens retornaram zero; escrita em contato recusada com `42501` | ✅ FUNCIONANDO E VALIDADA |
+| Isolamento A/B no banco | leitura A→B e B→A zerada; escrita A→B recusada `42501`; tudo revertido | ✅ FUNCIONANDO E VALIDADA |
+| Isolamento A/B na UI | troca visual e jornadas completas com dois logins ainda não exercitadas | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| RBAC por todos os papéis | 4 papéis × 58 destinos online; APIs negam dados, mas cinco superfícies têm UI/API divergentes (AUD-011) | 🟡 FUNCIONANDO PARCIALMENTE |
+| RPCs `SECURITY DEFINER` | advisor listou 39 executáveis por authenticated; `fn_resolve_inbound_number` foi provada indevidamente exposta (AUD-012) | 🔴 NÃO FUNCIONANDO |
+| Advisors Supabase | segurança e performance filtradas para `crm_comm`; sinais classificados sem assumir que lint equivale a vazamento | 🟡 FUNCIONANDO PARCIALMENTE |
+| Scheduler | 31 chamadas configuradas; uma é NO-OP aposentada | 🟡 FUNCIONANDO PARCIALMENTE |
+| Deploy/restart/rollback | deploy atual concluído; rollback não exercitado | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Observabilidade | health e audit rows existem; alertas/logs completos pendentes | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Responsividade | 7 telas críticas em 390×844 sem overflow; restante da matriz ainda pendente | 🟡 FUNCIONANDO PARCIALMENTE |
+| Acessibilidade | não auditada ainda | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Typecheck | execução completa passou | ✅ FUNCIONANDO E VALIDADA |
+| Testes críticos selecionados | 73/73 passaram | ✅ FUNCIONANDO E VALIDADA |
+| Testes OpenRouter relacionados | 78/78 passaram; sem chamada externa real | 🟡 FUNCIONANDO PARCIALMENTE |
+| Suíte unitária completa | 13.406 passaram; 1 falhou; 1 expected fail; 4 erros assíncronos | 🟡 FUNCIONANDO PARCIALMENTE |
+| Invariantes Postgres | Docker Desktop desligado; suíte não iniciou | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Logs reais Supabase | 24h analisadas; schema antigo cessou; falha UAZAPI ativa identificada | 🟡 FUNCIONANDO PARCIALMENTE |
+
+## Evidências a capturar por execução
+
+Para cada jornada serão registrados: data/hora, URL, papel, pré-condições,
+passos, resultado HTTP/UI, ID sintético persistido, resultado após reload,
+consultas de confirmação, erros de console/rede relevantes e limpeza. Capturas
+não devem conter tokens, senhas, chaves de API nem dados pessoais desnecessários.
