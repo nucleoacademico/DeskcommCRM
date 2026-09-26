@@ -4,10 +4,16 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { ROLE_RANK, type Role } from "@/lib/auth/types";
-import { NAV_CATALOG, type NavDestinationId } from "@/lib/navigation/catalogo";
+import { NAV_CATALOG, type NavDestinationId, type NavMetadata } from "@/lib/navigation/catalogo";
 
 const ROOT = process.cwd();
 const humanRoles: Role[] = ["viewer", "agent", "manager", "admin"];
+
+function destinationFor(href: NavDestinationId): NavMetadata {
+  const destination = NAV_CATALOG.find((item) => item.href === href);
+  if (!destination) throw new Error(`Destino ausente do catálogo: ${href}`);
+  return destination;
+}
 
 const contract = [
   { href: "/app/radar", page: "app/app/radar/page.tsx", minimum: "agent" },
@@ -24,8 +30,7 @@ const contract = [
 
 describe("AUD-011 — menu, página e papel compartilham o mesmo contrato", () => {
   it.each(contract)("$href declara o papel mínimo no catálogo", ({ href, minimum }) => {
-    const destination = NAV_CATALOG.find((item) => item.href === href);
-    expect(destination?.minRole).toBe(minimum);
+    expect(destinationFor(href).minRole).toBe(minimum);
   });
 
   it.each(contract)("$href bloqueia antes de montar o client", ({ href, page }) => {
@@ -34,9 +39,12 @@ describe("AUD-011 — menu, página e papel compartilham o mesmo contrato", () =
   });
 
   it.each(contract)("$href produz a matriz de quatro papéis", ({ href, minimum }) => {
-    const destination = NAV_CATALOG.find((item) => item.href === href)!;
+    const destination = destinationFor(href);
     const actual = Object.fromEntries(
-      humanRoles.map((role) => [role, ROLE_RANK[role] >= ROLE_RANK[destination.minRole ?? "viewer"]]),
+      humanRoles.map((role) => [
+        role,
+        ROLE_RANK[role] >= ROLE_RANK[destination.minRole ?? "viewer"],
+      ]),
     );
     const expected = Object.fromEntries(
       humanRoles.map((role) => [role, ROLE_RANK[role] >= ROLE_RANK[minimum]]),

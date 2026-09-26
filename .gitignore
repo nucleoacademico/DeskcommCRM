@@ -152,6 +152,7 @@ backups/
 # token e o jwt_secret da instância — e história de git público é PERMANENTE:
 # commit posterior de remoção não tira o blob.
 .qa-backups/
+.audit-evidence/
 *.dump
 docker-compose.override.yml
 .prova/

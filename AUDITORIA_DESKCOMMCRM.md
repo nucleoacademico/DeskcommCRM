@@ -38,30 +38,30 @@ receber ✅ após uma operação controlada ponta a ponta.
 
 ### Identidade do artefato implantado
 
-| Item | Evidência | Estado |
-|---|---|---|
-| Repositório implantado | `nucleoacademico/DeskcommCRM`, branch `beheroes-crm-comm` | ✅ FUNCIONANDO E VALIDADA |
-| Commit observado | `702a3e7d2a114aae54a2d0acc159151f56147339` | ✅ FUNCIONANDO E VALIDADA |
-| Deploy Dokploy | projeto `CRM_DESKCOMM_BEHEROES`; último deploy concluído | ✅ FUNCIONANDO E VALIDADA |
-| Saúde pública | Supabase, Redis e WAHA responderam `ok`; 50/27/10 ms na amostra | ✅ FUNCIONANDO E VALIDADA |
-| Proteção sem sessão | `/app/crm` respondeu 307 para `/login?next=%2Fapp%2Fcrm` | ✅ FUNCIONANDO E VALIDADA |
-| Login público | `/login` respondeu HTTP 200 em 209 ms | ✅ FUNCIONANDO E VALIDADA |
+| Item                   | Evidência                                                       | Estado                    |
+| ---------------------- | --------------------------------------------------------------- | ------------------------- |
+| Repositório implantado | `nucleoacademico/DeskcommCRM`, branch `beheroes-crm-comm`       | ✅ FUNCIONANDO E VALIDADA |
+| Commit observado       | `702a3e7d2a114aae54a2d0acc159151f56147339`                      | ✅ FUNCIONANDO E VALIDADA |
+| Deploy Dokploy         | projeto `CRM_DESKCOMM_BEHEROES`; último deploy concluído        | ✅ FUNCIONANDO E VALIDADA |
+| Saúde pública          | Supabase, Redis e WAHA responderam `ok`; 50/27/10 ms na amostra | ✅ FUNCIONANDO E VALIDADA |
+| Proteção sem sessão    | `/app/crm` respondeu 307 para `/login?next=%2Fapp%2Fcrm`        | ✅ FUNCIONANDO E VALIDADA |
+| Login público          | `/login` respondeu HTTP 200 em 209 ms                           | ✅ FUNCIONANDO E VALIDADA |
 
 ### Dimensão do sistema encontrada no código
 
-| Superfície | Quantidade |
-|---|---:|
-| Páginas Next.js (`page.tsx`) | 137 |
-| Rotas HTTP (`route.ts`) | 359 |
-| Arquivos de server actions | 57 |
-| Arquivos TS/TSX em app e componentes | 1.201 |
-| Arquivos com formulários | 54 |
-| Arquivos com dialog/sheet/alert | 88 |
-| Hooks | 167 |
-| Workers | 19 |
-| Migrations SQL | 333 |
-| Arquivos de teste unitário | 1.607 |
-| Specs E2E | 150 |
+| Superfície                           | Quantidade |
+| ------------------------------------ | ---------: |
+| Páginas Next.js (`page.tsx`)         |        137 |
+| Rotas HTTP (`route.ts`)              |        359 |
+| Arquivos de server actions           |         57 |
+| Arquivos TS/TSX em app e componentes |      1.201 |
+| Arquivos com formulários             |         54 |
+| Arquivos com dialog/sheet/alert      |         88 |
+| Hooks                                |        167 |
+| Workers                              |         19 |
+| Migrations SQL                       |        333 |
+| Arquivos de teste unitário           |      1.607 |
+| Specs E2E                            |        150 |
 
 Esses números provam superfície implementada e testabilidade potencial, não o
 funcionamento do ambiente online.
@@ -71,16 +71,16 @@ funcionamento do ambiente online.
 O catálogo canônico possui 58 destinos/hubs. Abaixo está o inventário por
 jornada; rotas auxiliares e páginas de detalhe entram na seção seguinte.
 
-| Área | Destinos encontrados | Acesso mínimo predominante | Estado da área nesta fase |
-|---|---|---|---|
-| Atendimento | Inbox, Radar, Agenda, Respostas rápidas | viewer | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| CRM | Prospecção, Funis, Campanhas, Contatos, Tarefas, Chamadas, Produtos, Comandas, Etapas do funil | viewer a admin | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Agente de IA | Agentes, Follow-ups, Roteadores, Credenciais, Provedores, Conhecimento, Memória, Skills, Casos, Alertas, Avisos, Propostas, Execuções, Uso e orçamento | viewer a admin | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Canais | Conexões, Nuvemshop, Webhooks | manager/admin | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Análise | Faturamento, Desempenho, Meta Ads, Atividades, Evolução da IA, Audit Log | viewer a manager | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Organização | Perfil, Segurança, Notificações, Equipe, Distribuição, Tags, Organização, Conversões, Meta Ads, Marca, Billing, LGPD, API Tokens, SIP, Extensões, Dados externos | viewer a admin | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Administração da plataforma | 28 páginas protegidas mais `/admin/forbidden` | platform_admin | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Entrada e implantação | login, signup, recuperação, convites, onboarding, instalação e páginas públicas | público/autenticado | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Área                        | Destinos encontrados                                                                                                                                             | Acesso mínimo predominante | Estado da área nesta fase        |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------- |
+| Atendimento                 | Inbox, Radar, Agenda, Respostas rápidas                                                                                                                          | viewer                     | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| CRM                         | Prospecção, Funis, Campanhas, Contatos, Tarefas, Chamadas, Produtos, Comandas, Etapas do funil                                                                   | viewer a admin             | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Agente de IA                | Agentes, Follow-ups, Roteadores, Credenciais, Provedores, Conhecimento, Memória, Skills, Casos, Alertas, Avisos, Propostas, Execuções, Uso e orçamento           | viewer a admin             | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Canais                      | Conexões, Nuvemshop, Webhooks                                                                                                                                    | manager/admin              | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Análise                     | Faturamento, Desempenho, Meta Ads, Atividades, Evolução da IA, Audit Log                                                                                         | viewer a manager           | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Organização                 | Perfil, Segurança, Notificações, Equipe, Distribuição, Tags, Organização, Conversões, Meta Ads, Marca, Billing, LGPD, API Tokens, SIP, Extensões, Dados externos | viewer a admin             | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Administração da plataforma | 28 páginas protegidas mais `/admin/forbidden`                                                                                                                    | platform_admin             | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Entrada e implantação       | login, signup, recuperação, convites, onboarding, instalação e páginas públicas                                                                                  | público/autenticado        | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
 
 ### Páginas e jornadas fora do menu principal
 
@@ -111,16 +111,16 @@ efeito observável.
 
 ### Banco Supabase — schema `crm_comm`
 
-| Item | Resultado observado | Estado |
-|---|---:|---|
-| Tabelas base | 170 | ✅ FUNCIONANDO E VALIDADA |
-| Views | 5 | ✅ FUNCIONANDO E VALIDADA |
-| Funções | 237 | ✅ FUNCIONANDO E VALIDADA |
-| Policies RLS | 547 | ✅ FUNCIONANDO E VALIDADA |
-| Triggers | 199 | ✅ FUNCIONANDO E VALIDADA |
-| Tabelas com RLS ativo | 170/170 | ✅ FUNCIONANDO E VALIDADA |
-| Funções `SECURITY DEFINER` do schema executáveis por PUBLIC | 0 | ✅ FUNCIONANDO E VALIDADA |
-| Tabelas com RLS e nenhuma policy | 31 | 🟡 FUNCIONANDO PARCIALMENTE |
+| Item                                                        | Resultado observado | Estado                      |
+| ----------------------------------------------------------- | ------------------: | --------------------------- |
+| Tabelas base                                                |                 170 | ✅ FUNCIONANDO E VALIDADA   |
+| Views                                                       |                   5 | ✅ FUNCIONANDO E VALIDADA   |
+| Funções                                                     |                 237 | ✅ FUNCIONANDO E VALIDADA   |
+| Policies RLS                                                |                 547 | ✅ FUNCIONANDO E VALIDADA   |
+| Triggers                                                    |                 199 | ✅ FUNCIONANDO E VALIDADA   |
+| Tabelas com RLS ativo                                       |             170/170 | ✅ FUNCIONANDO E VALIDADA   |
+| Funções `SECURITY DEFINER` do schema executáveis por PUBLIC |                   0 | ✅ FUNCIONANDO E VALIDADA   |
+| Tabelas com RLS e nenhuma policy                            |                  31 | 🟡 FUNCIONANDO PARCIALMENTE |
 
 As 31 tabelas sem policy são majoritariamente internas e concedidas apenas a
 `service_role`, portanto a ausência pode ser deliberada. Três merecem revisão
@@ -136,23 +136,23 @@ externo; financeiro; LGPD; voz; anúncios; auditoria e webhooks.
 
 ### Volume real do tenant observado
 
-| Entidade | Linhas |
-|---|---:|
-| Organizações CRM | 1 |
-| Memberships | 1 |
-| Platform admins | 1 |
-| Usuários Auth do projeto Supabase compartilhado | 19 |
-| Fatores MFA verificados | 1 |
-| Contatos / leads | 34 / 34 |
-| Conversas / mensagens | 32 / 90 |
-| Funis / etapas | 1 / 8 |
-| Tarefas / atividades | 1 / 34 |
-| Agentes / versões | 1 / 1 |
-| Templates | 1 |
-| Sessões de canal ativas e não arquivadas | 1 |
-| Webhook sources | 1 |
-| Appointments / routers / follow-up flows | 0 / 0 / 0 |
-| Linhas de audit log | 72 |
+| Entidade                                        |    Linhas |
+| ----------------------------------------------- | --------: |
+| Organizações CRM                                |         1 |
+| Memberships                                     |         1 |
+| Platform admins                                 |         1 |
+| Usuários Auth do projeto Supabase compartilhado |        19 |
+| Fatores MFA verificados                         |         1 |
+| Contatos / leads                                |   34 / 34 |
+| Conversas / mensagens                           |   32 / 90 |
+| Funis / etapas                                  |     1 / 8 |
+| Tarefas / atividades                            |    1 / 34 |
+| Agentes / versões                               |     1 / 1 |
+| Templates                                       |         1 |
+| Sessões de canal ativas e não arquivadas        |         1 |
+| Webhook sources                                 |         1 |
+| Appointments / routers / follow-up flows        | 0 / 0 / 0 |
+| Linhas de audit log                             |        72 |
 
 Há somente um tenant CRM. Portanto o isolamento A/B ainda não pode receber ✅
 em produção sem criar um segundo tenant sintético e usuários de teste separados.
@@ -187,27 +187,27 @@ de qualquer classificação de segurança.
 
 ### Módulos opcionais e mocks
 
-| Item | Evidência | Estado |
-|---|---|---|
-| Banco de dados externo | `MODULO_BANCO_EXTERNO=desligado` | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
-| Fluxos de atendimento | existe no código, mas consta em `MODULOS_AINDA_NAO_LIGAVEIS` | ⚫ NÃO IMPLEMENTADA |
-| Dados fictícios da Agenda | importados apenas por `/vitrine-agenda`, não pela Agenda produtiva | ⚪ MOCK / PLACEHOLDER |
-| Assinatura PAdES de export LGPD | TODO explícito até provisionar certificado | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
+| Item                            | Evidência                                                          | Estado                         |
+| ------------------------------- | ------------------------------------------------------------------ | ------------------------------ |
+| Banco de dados externo          | `MODULO_BANCO_EXTERNO=desligado`                                   | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
+| Fluxos de atendimento           | existe no código, mas consta em `MODULOS_AINDA_NAO_LIGAVEIS`       | ⚫ NÃO IMPLEMENTADA            |
+| Dados fictícios da Agenda       | importados apenas por `/vitrine-agenda`, não pela Agenda produtiva | ⚪ MOCK / PLACEHOLDER          |
+| Assinatura PAdES de export LGPD | TODO explícito até provisionar certificado                         | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
 
 ### Dependências externas configuradas
 
-| Capacidade | Estado nesta instalação | Classificação |
-|---|---|---|
-| Supabase, Redis, WAHA | health online | ✅ FUNCIONANDO E VALIDADA |
-| WhatsApp UAZAPI | canal ativo observado; jornada controlada ainda pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Z-API e Meta Cloud API | adaptadores/código a inventariar e operação não provada | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Capacidade              | Estado nesta instalação                                                | Classificação                    |
+| ----------------------- | ---------------------------------------------------------------------- | -------------------------------- |
+| Supabase, Redis, WAHA   | health online                                                          | ✅ FUNCIONANDO E VALIDADA        |
+| WhatsApp UAZAPI         | canal ativo observado; jornada controlada ainda pendente               | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Z-API e Meta Cloud API  | adaptadores/código a inventariar e operação não provada                | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
 | OpenRouter/JEV e OpenAI | chaves presentes; conteúdo não registrado; execução produtiva pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Google Calendar | client id/secret ausentes | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
-| Email transacional | SMTP/Resend incompletos | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
-| Push web | VAPID ausente | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
-| Nuvemshop | flag habilitada; OAuth real pendente | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
-| Meta Ads | nenhuma conexão persistida | 🔵 REQUER CONFIGURAÇÃO EXTERNA |
-| SIP/voz | operação real ainda não provada | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Google Calendar         | client id/secret ausentes                                              | 🔵 REQUER CONFIGURAÇÃO EXTERNA   |
+| Email transacional      | SMTP/Resend incompletos                                                | 🔵 REQUER CONFIGURAÇÃO EXTERNA   |
+| Push web                | VAPID ausente                                                          | 🔵 REQUER CONFIGURAÇÃO EXTERNA   |
+| Nuvemshop               | flag habilitada; OAuth real pendente                                   | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
+| Meta Ads                | nenhuma conexão persistida                                             | 🔵 REQUER CONFIGURAÇÃO EXTERNA   |
+| SIP/voz                 | operação real ainda não provada                                        | 🟠 IMPLEMENTADA MAS NÃO VALIDADA |
 
 ### Evidências funcionais já obtidas antes desta rodada
 
@@ -259,7 +259,7 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 ### AUD-002 — email de recuperação/convite não está operacional
 
 - Severidade: P1
-- Estado: 🔵 REQUER CONFIGURAÇÃO EXTERNA
+- Estado após Fase 2: 🟡 FUNCIONANDO PARCIALMENTE
 - Área: autenticação
 - Evidência: SMTP e Resend sem host/usuário/senha/remetente completos no deploy;
   o usuário já observou recuperação sem recebimento. Nos logs Auth das últimas
@@ -268,6 +268,10 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 - Impacto: usuário sem senha pode ficar bloqueado e convites podem não chegar.
 - Correção recomendada: configurar provedor transacional, remetente e URLs do
   Supabase; validar entrega, spam, expiração e troca de senha em jornada real.
+- Reteste em 26/09: o endpoint Auth `/recover` respondeu 200 e o log registrou
+  `mail.send` para a conta administradora. A entrega na caixa postal, abertura
+  do link e troca efetiva da senha ainda precisam da confirmação do destinatário;
+  por isso o item não foi encerrado.
 
 ### AUD-003 — isolamento multi-tenant ainda não tem prova A/B pela UI
 
@@ -323,7 +327,7 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 ### AUD-007 — suíte unitária não está verde por teste lexical desatualizado
 
 - Severidade: P2
-- Estado: 🟡 FUNCIONANDO PARCIALMENTE
+- Estado após Fase 2: ✅ FUNCIONANDO E VALIDADA
 - Área: qualidade / OpenRouter
 - Evidência: a suíte completa executou 13.408 testes: 13.406 passaram, um era
   `expected fail` e um falhou. A falha procura literalmente aspas simples em
@@ -336,11 +340,14 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
   comportamental do `resolveOrgLlmConfig` com pool simulado ou fixture de banco.
 - Regressão exigida: testar BYOK, fallback de instalação, ausência de chave e
   proibição de encaminhar chave da instalação a base URL controlada pelo tenant.
+- Resultado corretivo: o teste lexical foi substituído por contrato
+  comportamental. A regressão completa passou em 1.346 arquivos: 13.452 testes
+  aprovados, um `expected fail`, zero falhas e zero erros não tratados.
 
 ### AUD-008 — quatro rejeições assíncronas não tratadas na suíte do Inbox
 
 - Severidade: P2
-- Estado: 🟡 FUNCIONANDO PARCIALMENTE
+- Estado após Fase 2: ✅ FUNCIONANDO E VALIDADA
 - Área: qualidade / Inbox / Realtime
 - Evidência: Vitest relatou quatro `Unhandled Rejection` em
   `deep-link-nao-espera-a-lista.test.tsx` e
@@ -352,19 +359,20 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 - Correção recomendada: atualizar o mock compartilhado e fazer a suíte falhar
   sob rejeição não tratada; desmontar/aguardar subscriptions de forma explícita.
 - Regressão exigida: os dois arquivos devem passar sem seção `Unhandled Errors`.
+- Resultado corretivo: mocks e encerramento assíncrono foram alinhados ao
+  contrato Realtime atual; a regressão completa terminou sem `Unhandled Errors`.
 
 ### AUD-009 — eventos UAZAPI com remetente LID são descartados como telefone inválido
 
 - Severidade: P1
-- Estado: 🔴 NÃO FUNCIONANDO
+- Estado após Fase 2: ✅ FUNCIONANDO E VALIDADA
 - Área: WhatsApp / UAZAPI / Inbox
 - Evidência de produção: entre 24/09 22:02 UTC e 25/09 11:48 UTC, seis chamadas
   de `fn_upsert_wa_contact` falharam no CHECK
   `contacts_phone_e164_format`. Os valores projetados como telefone tinham
   16–17 dígitos, acima do limite E.164 de 15. A transação não criou contato,
   conversa nem mensagem.
-- Contexto de volume: no mesmo intervalo amplo, 78 chamadas da RPC responderam
-  200. Portanto o canal não está totalmente inoperante; o ramo de identidade
+- Contexto de volume: no mesmo intervalo amplo, 78 chamadas da RPC responderam 200. Portanto o canal não está totalmente inoperante; o ramo de identidade
   LID/PN é que está quebrado e perde uma parcela real das entradas.
 - Causa confirmada no código: `parseUazapiWebhook()` escolhe
   `message.sender` antes de `message.chatid`, remove o sufixo e aceita qualquer
@@ -383,11 +391,15 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 - Regressão exigida: fixtures reais redigidas para telefone, LID, grupo e
   newsletter; confirmar contato/conversa/mensagem, idempotência e efeitos pós-
   entrada. Reconciliar pela API os seis eventos perdidos após a correção.
+- Resultado corretivo online: em tenant sintético isolado, o webhook público
+  respondeu 200 e `ingested`, persistiu telefone E.164, `wa_identity=phone:*` e
+  o LID opaco separado; a repetição retornou `duplicate`. O contato apareceu no
+  Inbox autenticado. A organização e todos os dados QA foram removidos ao final.
 
 ### AUD-010 — derivação de áudio/imagem falha por MIME genérico
 
 - Severidade: P2
-- Estado: 🟡 FUNCIONANDO PARCIALMENTE
+- Estado após Fase 2: ✅ FUNCIONANDO E VALIDADA
 - Área: WhatsApp multimodal / IA
 - Evidência de produção: 20 eventos `media.derive_requested` nas últimas 24h;
   11 terminaram `dead` após cinco tentativas. Foram seis áudios com
@@ -408,11 +420,16 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 - Regressão exigida: amostras OGG/Opus, MP3, M4A, JPEG, PNG, WebP e arquivo
   inválido, todos recebidos com header `octet-stream`; provar storage, MIME,
   derivação, retry e aviso.
+- Resultado corretivo online: um PNG não sensível foi servido deliberadamente
+  como `application/octet-stream`, ingerido pelo webhook real e persistido como
+  `image/png` (70.268 bytes). `media.persist_requested` e
+  `media.derive_requested` terminaram `done`, a derivação ficou `ready` e
+  produziu texto. Bucket, objeto e tenant sintéticos foram removidos.
 
 ### AUD-011 — navegação oferece páginas que o próprio backend recusa por papel
 
 - Severidade: P2
-- Estado: 🟡 FUNCIONANDO PARCIALMENTE
+- Estado após Fase 2: ✅ FUNCIONANDO E VALIDADA
 - Área: RBAC / navegação / experiência dos funcionários
 - Evidência online: quatro usuários QA reais (`viewer`, `agent`, `manager` e
   `admin`) percorreram 58 destinos declarados, totalizando 232 navegações
@@ -445,11 +462,16 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 - Regressão exigida: matriz E2E por papel para cada destino, provando menu,
   acesso direto, GET e mutações; página recusada não pode renderizar casca com
   requisição 403 no console.
+- Resultado corretivo online: `viewer`, `agent`, `manager` e `admin` (este com
+  TOTP real) exercitaram Radar, Agenda, Campanhas, Desempenho, Equipe e Chamadas.
+  Foram 24 verificações de página e 24 de API: 48/48 coincidiram com a matriz
+  esperada. Papéis negados receberam 403 e os permitidos 200; toda a massa QA
+  foi eliminada ao final.
 
 ### AUD-012 — RPC de roteamento telefônico exposta a qualquer autenticado
 
 - Severidade: P2
-- Estado: 🔴 NÃO FUNCIONANDO
+- Estado após Fase 2: ✅ FUNCIONANDO E VALIDADA
 - Área: segurança / VoIP / grants de função
 - Contrato esperado: a migration `0347_modulo_voip` revoga `EXECUTE` de
   `public` e `anon` e concede a função `fn_resolve_inbound_number(text)` somente
@@ -473,6 +495,9 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
   a autorização.
 - Regressão exigida: `authenticated` recebe `42501`; `service_role` resolve DID
   ativo; migrations/baseline e banco publicado terminam com ACL idêntico.
+- Resultado corretivo online: usuário Auth sintético recebeu `42501`; a mesma
+  RPC executada por `service_role` foi aceita. O ACL publicado preserva somente
+  `postgres` e `service_role`, com `search_path` vazio. O usuário QA foi removido.
 
 ## Advisors e perfil de desempenho do Supabase
 
@@ -527,28 +552,33 @@ está em `draft`. Não há versão publicada; portanto nenhuma conversa real pod
 ser usada para afirmar que a IA está atendendo clientes. O único
 `ai_agent_run` existente é evidência de teste/preview, não de produção.
 
-## Gates executados em 25/09/2026
+## Gates executados em 25–26/09/2026
 
-| Gate | Resultado | Interpretação |
-|---|---|---|
-| TypeScript (`tsc --noEmit`) | passou sem saída | tipagem do checkout válida |
-| 9 arquivos críticos | 73/73 testes passaram | navegação, cron, RBAC, MFA, login e tenant guard |
-| 6 arquivos OpenRouter relacionados | 78/78 testes passaram | boa cobertura do caminho, sem provar chamada externa real |
-| Suíte unitária completa | 13.406 passaram; 1 falhou; 1 expected fail; 4 erros assíncronos | gate geral vermelho; AUD-007 e AUD-008 |
-| Invariantes Postgres/RLS | não iniciou: Docker Desktop desligado | sem veredito; não conta como falha nem aprovação do produto |
-| RLS — membro real | sessão `authenticated` do membro ativo leu 1 organização e somente seus contatos, leads e mensagens | escopo positivo validado diretamente no banco |
-| RLS — usuário sem vínculo | UUID autenticado sem membership leu 0 organizações, 0 contatos, 0 leads e 0 mensagens | isolamento negativo validado diretamente no banco |
-| RLS — escrita sem vínculo | `INSERT` em `contacts` foi recusado com `42501`; transação revertida e nenhuma linha permaneceu | proteção de escrita validada diretamente no banco |
-| RLS A/B — dois tenants | admin comum de A viu A e não viu organização/contato de B; manager de B viu B e não viu A | isolamento de leitura entre tenants validado em transações descartáveis |
-| RLS A/B — escrita cruzada | admin comum de A tentou inserir contato em B e recebeu `42501`; zero linhas criadas | isolamento de escrita entre tenants validado em transação descartável |
-| RLS — platform admin | o superadministrador viu o tenant sintético B | comportamento global deliberado confirmado; não equivale ao papel `admin` de tenant |
-| Logs Supabase (24h) | schema errors cessaram; seis falhas UAZAPI posteriores | AUD-009 confirmado em produção |
-| Event log/mídia (24h) | 20 derivações; 11 dead após 5 tentativas | AUD-010 confirmado em produção |
-| 88 páginas privadas estáticas sem sessão | 87 redirecionaram para login; `/admin/forbidden` mostrou apenas a recusa | perímetro de páginas validado |
-| 141 APIs GET estáticas sem sessão | 120×401, 17×403, 2 callbacks seguros, health público; 0×5xx | nenhuma API de dados respondeu 200 anonimamente |
-| Matriz autenticada de navegação | 4 papéis × 58 destinos = 232 navegações; 0×5xx; 25 divergências iniciais triadas | APIs protegidas, mas AUD-011 confirma inconsistência UI/API por papel |
-| Mobile dirigido | 7 telas críticas em 390×844; overflow horizontal medido = 0 | recorte responsivo aprovado; não substitui toda a matriz mobile |
-| CRUD online isolado | contato, resposta rápida e tarefa: criar/editar/reload/excluir; tarefa concluir/reabrir | três jornadas aprovadas, sem 4xx/5xx e com limpeza confirmada |
+| Gate                                     | Resultado                                                                                           | Interpretação                                                                       |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| TypeScript (`tsc --noEmit`)              | passou sem saída                                                                                    | tipagem do checkout válida                                                          |
+| 9 arquivos críticos                      | 73/73 testes passaram                                                                               | navegação, cron, RBAC, MFA, login e tenant guard                                    |
+| 6 arquivos OpenRouter relacionados       | 78/78 testes passaram                                                                               | boa cobertura do caminho, sem provar chamada externa real                           |
+| Suíte unitária completa após correções   | 1.346 arquivos; 13.452 passaram; 1 expected fail; zero falhas/erros não tratados                    | gate verde; AUD-007 e AUD-008 encerrados                                            |
+| Invariantes Postgres/RLS                 | não iniciou: Docker Desktop desligado                                                               | sem veredito; não conta como falha nem aprovação do produto                         |
+| RLS — membro real                        | sessão `authenticated` do membro ativo leu 1 organização e somente seus contatos, leads e mensagens | escopo positivo validado diretamente no banco                                       |
+| RLS — usuário sem vínculo                | UUID autenticado sem membership leu 0 organizações, 0 contatos, 0 leads e 0 mensagens               | isolamento negativo validado diretamente no banco                                   |
+| RLS — escrita sem vínculo                | `INSERT` em `contacts` foi recusado com `42501`; transação revertida e nenhuma linha permaneceu     | proteção de escrita validada diretamente no banco                                   |
+| RLS A/B — dois tenants                   | admin comum de A viu A e não viu organização/contato de B; manager de B viu B e não viu A           | isolamento de leitura entre tenants validado em transações descartáveis             |
+| RLS A/B — escrita cruzada                | admin comum de A tentou inserir contato em B e recebeu `42501`; zero linhas criadas                 | isolamento de escrita entre tenants validado em transação descartável               |
+| RLS — platform admin                     | o superadministrador viu o tenant sintético B                                                       | comportamento global deliberado confirmado; não equivale ao papel `admin` de tenant |
+| Logs Supabase (24h)                      | schema errors cessaram; seis falhas UAZAPI posteriores                                              | AUD-009 confirmado em produção                                                      |
+| Event log/mídia (24h)                    | 20 derivações; 11 dead após 5 tentativas                                                            | AUD-010 confirmado em produção                                                      |
+| 88 páginas privadas estáticas sem sessão | 87 redirecionaram para login; `/admin/forbidden` mostrou apenas a recusa                            | perímetro de páginas validado                                                       |
+| 141 APIs GET estáticas sem sessão        | 120×401, 17×403, 2 callbacks seguros, health público; 0×5xx                                         | nenhuma API de dados respondeu 200 anonimamente                                     |
+| Matriz autenticada de navegação          | 4 papéis × 58 destinos = 232 navegações; 0×5xx; 25 divergências iniciais triadas                    | APIs protegidas, mas AUD-011 confirma inconsistência UI/API por papel               |
+| Mobile dirigido                          | 7 telas críticas em 390×844; overflow horizontal medido = 0                                         | recorte responsivo aprovado; não substitui toda a matriz mobile                     |
+| CRUD online isolado                      | contato, resposta rápida e tarefa: criar/editar/reload/excluir; tarefa concluir/reabrir             | três jornadas aprovadas, sem 4xx/5xx e com limpeza confirmada                       |
+| UAZAPI LID/PN online                     | primeira entrega `ingested`, repetição `duplicate`, DB e Inbox confirmados                          | AUD-009 encerrado; limpeza confirmada                                               |
+| MIME e IA online                         | `octet-stream` convertido em `image/png`; persistência e derivação `done`; texto derivado presente  | AUD-010 encerrado; limpeza confirmada                                               |
+| RBAC corretivo online                    | 4 papéis × 6 superfícies × página/API = 48/48; admin com TOTP                                       | AUD-011 encerrado; limpeza confirmada                                               |
+| ACL RPC online                           | `authenticated` 42501; `service_role` aceito                                                        | AUD-012 encerrado; limpeza confirmada                                               |
+| Typecheck e lint arquitetural            | TypeScript, canais e hierarquia de papéis passaram                                                  | checkout corretivo consistente                                                      |
 
 Os dois callbacks acessíveis sem sessão não entregaram dados: Google Agenda
 renderizou a página de retorno não verificável e os callbacks Google Ads e
