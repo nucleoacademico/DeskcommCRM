@@ -32,10 +32,13 @@ describe("webhooks dos canais por API", () => {
     ["brasileiro", "5531999999999@s.whatsapp.net", "+5531999999999"],
     ["internacional", "12025550123@s.whatsapp.net", "+12025550123"],
   ])("normaliza telefone %s dentro do limite E.164", (_label, sender, esperado) => {
-    const [event] = parseUazapiWebhook(JSON.stringify({
-      EventType: "messages",
-      message: { messageid: `msg-${_label}`, sender, chatid: sender, text: "oi" },
-    }), "instancia-a");
+    const [event] = parseUazapiWebhook(
+      JSON.stringify({
+        EventType: "messages",
+        message: { messageid: `msg-${_label}`, sender, chatid: sender, text: "oi" },
+      }),
+      "instancia-a",
+    );
 
     expect(event).toMatchObject({
       kind: "inbound",
@@ -46,15 +49,18 @@ describe("webhooks dos canais por API", () => {
   });
 
   it("preserva LID opaco em vez de projetá-lo como telefone", () => {
-    const [event] = parseUazapiWebhook(JSON.stringify({
-      EventType: "messages",
-      message: {
-        messageid: "msg-lid",
-        sender: "98765432109876543@lid",
-        chatid: "98765432109876543@lid",
-        text: "oi",
-      },
-    }), "instancia-a");
+    const [event] = parseUazapiWebhook(
+      JSON.stringify({
+        EventType: "messages",
+        message: {
+          messageid: "msg-lid",
+          sender: "98765432109876543@lid",
+          chatid: "98765432109876543@lid",
+          text: "oi",
+        },
+      }),
+      "instancia-a",
+    );
 
     expect(event).toMatchObject({
       kind: "inbound",
@@ -71,17 +77,20 @@ describe("webhooks dos canais por API", () => {
   });
 
   it("prioriza sender_pn como telefone e mantém sender_lid para correlação", () => {
-    const [event] = parseUazapiWebhook(JSON.stringify({
-      EventType: "messages",
-      message: {
-        messageid: "msg-pn-lid",
-        sender: "98765432109876543@lid",
-        sender_pn: "12025550123@s.whatsapp.net",
-        sender_lid: "98765432109876543@lid",
-        chatid: "98765432109876543@lid",
-        text: "oi",
-      },
-    }), "instancia-a");
+    const [event] = parseUazapiWebhook(
+      JSON.stringify({
+        EventType: "messages",
+        message: {
+          messageid: "msg-pn-lid",
+          sender: "98765432109876543@lid",
+          sender_pn: "12025550123@s.whatsapp.net",
+          sender_lid: "98765432109876543@lid",
+          chatid: "98765432109876543@lid",
+          text: "oi",
+        },
+      }),
+      "instancia-a",
+    );
 
     expect(event).toMatchObject({
       kind: "inbound",
@@ -98,15 +107,18 @@ describe("webhooks dos canais por API", () => {
   });
 
   it("aceita sender_lid tipado mesmo sem sufixo", () => {
-    const [event] = parseUazapiWebhook(JSON.stringify({
-      EventType: "messages",
-      message: {
-        messageid: "msg-lid-explicito",
-        sender_lid: "opaque-lid-value",
-        chatid: "opaque-lid-value@lid",
-        text: "oi",
-      },
-    }), "instancia-a");
+    const [event] = parseUazapiWebhook(
+      JSON.stringify({
+        EventType: "messages",
+        message: {
+          messageid: "msg-lid-explicito",
+          sender_lid: "opaque-lid-value",
+          chatid: "opaque-lid-value@lid",
+          text: "oi",
+        },
+      }),
+      "instancia-a",
+    );
 
     expect(event).toMatchObject({
       kind: "inbound",
@@ -115,25 +127,146 @@ describe("webhooks dos canais por API", () => {
   });
 
   it.each([
-    ["grupo", { isGroup: true, chatid: "120363000000000000@g.us", sender: "5511999999999@s.whatsapp.net" }, "group"],
-    ["newsletter", { chatid: "123456789012345@newsletter", sender: "123456789012345@newsletter" }, "newsletter"],
+    [
+      "grupo",
+      { isGroup: true, chatid: "120363000000000000@g.us", sender: "5511999999999@s.whatsapp.net" },
+      "group",
+    ],
+    [
+      "newsletter",
+      { chatid: "123456789012345@newsletter", sender: "123456789012345@newsletter" },
+      "newsletter",
+    ],
   ])("distingue %s e não o transforma em contato", (_label, payload, reason) => {
-    const events = parseUazapiWebhook(JSON.stringify({
-      EventType: "messages",
-      message: { messageid: `msg-${_label}`, ...payload, text: "oi" },
-    }), "instancia-a");
+    const events = parseUazapiWebhook(
+      JSON.stringify({
+        EventType: "messages",
+        message: { messageid: `msg-${_label}`, ...payload, text: "oi" },
+      }),
+      "instancia-a",
+    );
     expect(events).toEqual([{ kind: "ignored", reason }]);
   });
 
+  // O portão de grupo é medido, não presumido: em 891 payloads reais da UAZAPI,
+  // `isGroup: true` apareceu em 676/676 mensagens de grupo e em 0/215 conversas
+  // 1:1. Estes testes existem para impedir que uma "simplificação" do portão
+  // derrube o atendimento sem erro — o modo de falha mais caro deste arquivo.
+  describe("portão de grupo: `isGroup` é o único discriminante válido", () => {
+    const UM_POR_UM_REAL = {
+      chatid: "98765432109876543@lid",
+      sender: "98765432109876543@lid",
+      sender_lid: "98765432109876543@lid",
+      sender_pn: "5531999999999@s.whatsapp.net",
+      // `groupName` chega em 98% dos 1:1 reais: nunca usar como prova de grupo.
+      groupName: "Conversa",
+      // `chatid` difere de `sender` em 98% dos 1:1: é a forma normal, não indício.
+      chatType: "user",
+    };
+
+    it("mantém no inbox quando isGroup=false, ainda que venha groupName", () => {
+      const [event] = parseUazapiWebhook(
+        JSON.stringify({
+          EventType: "messages",
+          message: { messageid: "msg-1x1-real", ...UM_POR_UM_REAL, isGroup: false, text: "oi" },
+        }),
+        "instancia-a",
+      );
+
+      expect(event).toMatchObject({ kind: "inbound", message: { externalId: "msg-1x1-real" } });
+    });
+
+    it("mantém no inbox quando o campo isGroup não vem", () => {
+      const [event] = parseUazapiWebhook(
+        JSON.stringify({
+          EventType: "messages",
+          message: { messageid: "msg-sem-isgroup", ...UM_POR_UM_REAL, text: "oi" },
+        }),
+        "instancia-a",
+      );
+
+      expect(event).toMatchObject({ kind: "inbound" });
+    });
+
+    it('trata a string "false" como 1:1, e não como grupo', () => {
+      // A armadilha: "false" é truthy em JavaScript, então `if (isGroup)`
+      // classificaria TODOS os 1:1 como grupo e o agente pararia de responder.
+      const [event] = parseUazapiWebhook(
+        JSON.stringify({
+          EventType: "messages",
+          message: {
+            messageid: "msg-false-string",
+            ...UM_POR_UM_REAL,
+            isGroup: "false",
+            text: "oi",
+          },
+        }),
+        "instancia-a",
+      );
+
+      expect(event).toMatchObject({ kind: "inbound" });
+    });
+
+    it.each([
+      ["booleano", true],
+      ["string", "true"],
+      ["numérico", 1],
+    ])("descarta grupo com isGroup %s mesmo sem @g.us", (_rotulo, isGroup) => {
+      const events = parseUazapiWebhook(
+        JSON.stringify({
+          EventType: "messages",
+          message: {
+            messageid: "msg-grupo",
+            isGroup,
+            chatid: "120363000000000000",
+            sender: "98765432109876543@lid",
+            sender_lid: "98765432109876543@lid",
+            text: "oi",
+          },
+        }),
+        "instancia-a",
+      );
+
+      expect(events).toEqual([{ kind: "ignored", reason: "group" }]);
+    });
+
+    it("descarta pelo sufixo @g.us mesmo sem isGroup (defesa de outro provider)", () => {
+      const events = parseUazapiWebhook(
+        JSON.stringify({
+          EventType: "messages",
+          message: {
+            messageid: "msg-gus",
+            chatid: "120363000000000000@g.us",
+            sender: "5511999999999@s.whatsapp.net",
+            text: "oi",
+          },
+        }),
+        "instancia-a",
+      );
+
+      expect(events).toEqual([{ kind: "ignored", reason: "group" }]);
+    });
+  });
+
   it("recusa payload incompleto sem fabricar identidade", () => {
-    expect(parseUazapiWebhook(JSON.stringify({
-      EventType: "messages",
-      message: { messageid: "msg-incompleta", text: "oi" },
-    }), "instancia-a")).toEqual([{ kind: "ignored", reason: "unsupported_identity" }]);
-    expect(parseUazapiWebhook(JSON.stringify({
-      EventType: "messages",
-      message: { sender: "5511999999999@s.whatsapp.net", text: "oi" },
-    }), "instancia-a")).toEqual([]);
+    expect(
+      parseUazapiWebhook(
+        JSON.stringify({
+          EventType: "messages",
+          message: { messageid: "msg-incompleta", text: "oi" },
+        }),
+        "instancia-a",
+      ),
+    ).toEqual([{ kind: "ignored", reason: "unsupported_identity" }]);
+    expect(
+      parseUazapiWebhook(
+        JSON.stringify({
+          EventType: "messages",
+          message: { sender: "5511999999999@s.whatsapp.net", text: "oi" },
+        }),
+        "instancia-a",
+      ),
+    ).toEqual([]);
   });
 
   it("ignora o eco de envio da UAZAPI", () => {
@@ -185,5 +318,53 @@ describe("webhooks dos canais por API", () => {
       "instancia-z",
     );
     expect(events).toEqual([{ kind: "status", externalIds: ["msg-z-2"], status: "sent" }]);
+  });
+
+  // A Z-API NÃO tinha portão de grupo. Como `conversations.is_group` não é
+  // populado por nenhum caminho de ingestion, o parser é a única barreira que
+  // existe: sem ela, grupo vira contato e os doze leitores de is_group
+  // (follow-up, export LGPD, MCP, dispatcher) o tratam como 1:1.
+  describe("portão de grupo da Z-API", () => {
+    it.each([
+      ["isGroup booleano", { isGroup: true, phone: "5511999999999" }],
+      ["isGroup string", { isGroup: "true", phone: "5511999999999" }],
+      ["chatId @g.us", { phone: "5511999999999", chatId: "120363000000000000@g.us" }],
+    ])("descarta grupo por %s", (_rotulo, payload) => {
+      const events = parseZApiWebhook(
+        JSON.stringify({
+          type: "ReceivedCallback",
+          instanceId: "instancia-z",
+          messageId: "msg-z-grupo",
+          fromMe: false,
+          text: { message: "oi" },
+          ...payload,
+        }),
+        "instancia-z",
+      );
+
+      expect(events).toEqual([{ kind: "ignored", reason: "group" }]);
+    });
+
+    it.each([
+      ["isGroup ausente", { phone: "5531888888888" }],
+      ["isGroup false", { isGroup: false, phone: "5531888888888" }],
+      ['isGroup "false"', { isGroup: "false", phone: "5531888888888" }],
+      ["isGroup zero", { isGroup: 0, phone: "5531888888888" }],
+      ["chatId de 1:1", { phone: "5531888888888", chatId: "5531888888888@s.whatsapp.net" }],
+    ])("mantém 1:1 quando %s", (_rotulo, payload) => {
+      const events = parseZApiWebhook(
+        JSON.stringify({
+          type: "ReceivedCallback",
+          instanceId: "instancia-z",
+          messageId: "msg-z-1x1",
+          fromMe: false,
+          text: { message: "oi" },
+          ...payload,
+        }),
+        "instancia-z",
+      );
+
+      expect(events[0]).toMatchObject({ kind: "inbound" });
+    });
   });
 });

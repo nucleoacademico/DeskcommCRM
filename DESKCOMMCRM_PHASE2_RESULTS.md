@@ -7,8 +7,11 @@ Deploy corretivo: commit `9bfe07f1e`, concluído com sucesso no Dokploy.
 
 ## Resultado executivo
 
-A Fase 2 encerrou AUD-001, AUD-007, AUD-008, AUD-009, AUD-010, AUD-011 e
-AUD-012 com testes online ou regressão completa. AUD-002 avançou: o Supabase
+A Fase 2 encerrou AUD-001, AUD-007, AUD-008, AUD-009, AUD-011 e AUD-012 com
+testes online ou regressão completa. AUD-010 ficou parcial: imagem foi provada,
+mas áudio ainda exige prova OGG/Opus, MP3 e M4A. AUD-014 teve os dados históricos
+limpos e o endurecimento UAZAPI/Z-API passou localmente; falta deploy e prova de
+regressão em produção. AUD-002 avançou: o Supabase
 aceitou a recuperação e registrou `mail.send`, mas continua parcial até o
 destinatário confirmar recebimento, abrir o link e trocar a senha.
 
@@ -22,11 +25,12 @@ criados para QA eram sintéticos e foram removidos ao final de cada execução.
 | ----------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | AUD-001     | scheduler publicado e workers atuais observados em eventos reais  | ✅ rota aposentada não é mais agendada; persistência/derivação processadas        |
 | AUD-002     | recuperação da conta administradora + logs Auth                   | 🟡 `/recover` 200 e `mail.send`; entrega/link/troca aguardam confirmação          |
-| AUD-007/008 | suíte unitária completa fora da restrição de sockets do sandbox   | ✅ 1.346 arquivos, 13.452 testes, 1 expected fail, zero falhas/erros não tratados |
+| AUD-007/008 | suíte unitária completa fora da restrição de sockets do sandbox   | ✅ 1.346 arquivos, 13.468 testes, 1 expected fail, zero falhas/erros não tratados |
 | AUD-009     | webhook UAZAPI público → DB → login → Inbox → repetição           | ✅ `ingested`, depois `duplicate`; LID preservado e contato visível               |
-| AUD-010     | mídia pública `octet-stream` → webhook → Storage → OpenRouter/JEV | ✅ `image/png`, 70.268 bytes, derivação `ready`, texto presente                   |
+| AUD-010     | mídia pública `octet-stream` → webhook → Storage → OpenRouter/JEV | 🟡 imagem aprovada; áudio ainda com `transcription_400`/erro de provider          |
 | AUD-011     | viewer/agent/manager/admin em 6 páginas e 6 APIs                  | ✅ 48/48 decisões de acesso corretas; TOTP real no admin                          |
 | AUD-012     | RPC com JWT `authenticated` e chave `service_role`                | ✅ `42501` para usuário; execução aceita para serviço                             |
+| AUD-014     | matriz sintética UAZAPI/Z-API para grupo e 1:1                    | 🟡 27/27 local; limpeza concluída; deploy/prova de produção pendentes             |
 
 ## IA real — OpenRouter/JEV
 

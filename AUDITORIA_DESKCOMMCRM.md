@@ -341,7 +341,7 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 - Regressão exigida: testar BYOK, fallback de instalação, ausência de chave e
   proibição de encaminhar chave da instalação a base URL controlada pelo tenant.
 - Resultado corretivo: o teste lexical foi substituído por contrato
-  comportamental. A regressão completa passou em 1.346 arquivos: 13.452 testes
+  comportamental. A regressão completa passou em 1.346 arquivos: 13.468 testes
   aprovados, um `expected fail`, zero falhas e zero erros não tratados.
 
 ### AUD-008 — quatro rejeições assíncronas não tratadas na suíte do Inbox
@@ -399,7 +399,7 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
 ### AUD-010 — derivação de áudio/imagem falha por MIME genérico
 
 - Severidade: P2
-- Estado após Fase 2: ✅ FUNCIONANDO E VALIDADA
+- Estado após Fase 2: 🟡 FUNCIONANDO PARCIALMENTE
 - Área: WhatsApp multimodal / IA
 - Evidência de produção: 20 eventos `media.derive_requested` nas últimas 24h;
   11 terminaram `dead` após cinco tentativas. Foram seis áudios com
@@ -425,6 +425,26 @@ organizações, usuários, contatos, tarefas ou templates com os marcadores QA.
   `image/png` (70.268 bytes). `media.persist_requested` e
   `media.derive_requested` terminaram `done`, a derivação ficou `ready` e
   produziu texto. Bucket, objeto e tenant sintéticos foram removidos.
+- Correção de estado em 26/09/2026: a prova fecha imagem, não áudio. Eventos
+  posteriores ao fix ainda registram `transcription_400` e erro de provider.
+  AUD-010 só fecha após OGG/Opus, MP3 e M4A sintéticos completarem detecção,
+  normalização, transcrição e estado final.
+
+### AUD-014 — grupos entraram no pipeline comercial
+
+- Severidade: P1 para integridade de dados e métricas; nenhum outbound foi
+  comprovado.
+- Estado atual: 🟡 CORRIGIDA LOCALMENTE; DEPLOY PENDENTE.
+- Histórico: 275 mensagens de grupo originaram 38 contatos/conversas/leads. A
+  limpeza controlada removeu somente dados exclusivos de grupo e preservou 1:1.
+- Estado pós-limpeza: 21 contatos, 19 conversas, 21 leads, 133 mensagens 1:1 e
+  zero reativações; nenhuma fila de saída ficou pendente.
+- Correção local: UAZAPI normaliza `isGroup` (`true`, `"true"`, `1`) sem tratar
+  `"false"` como grupo; Z-API ganhou o mesmo portão e fallback `@g.us`.
+- Regressão local: 27/27 testes do parser; suíte integral 1.346 arquivos,
+  13.468 testes aprovados e 1 falha esperada.
+- Critério restante: deploy controlado e prova de que grupo resulta `ignored`
+  sem criar contato, lead, conversa, dispatch de IA ou follow-up.
 
 ### AUD-011 — navegação oferece páginas que o próprio backend recusa por papel
 
@@ -559,7 +579,7 @@ ser usada para afirmar que a IA está atendendo clientes. O único
 | TypeScript (`tsc --noEmit`)              | passou sem saída                                                                                    | tipagem do checkout válida                                                          |
 | 9 arquivos críticos                      | 73/73 testes passaram                                                                               | navegação, cron, RBAC, MFA, login e tenant guard                                    |
 | 6 arquivos OpenRouter relacionados       | 78/78 testes passaram                                                                               | boa cobertura do caminho, sem provar chamada externa real                           |
-| Suíte unitária completa após correções   | 1.346 arquivos; 13.452 passaram; 1 expected fail; zero falhas/erros não tratados                    | gate verde; AUD-007 e AUD-008 encerrados                                            |
+| Suíte unitária completa após correções   | 1.346 arquivos; 13.468 passaram; 1 expected fail; zero falhas/erros não tratados                    | gate verde; AUD-007 e AUD-008 encerrados                                            |
 | Invariantes Postgres/RLS                 | não iniciou: Docker Desktop desligado                                                               | sem veredito; não conta como falha nem aprovação do produto                         |
 | RLS — membro real                        | sessão `authenticated` do membro ativo leu 1 organização e somente seus contatos, leads e mensagens | escopo positivo validado diretamente no banco                                       |
 | RLS — usuário sem vínculo                | UUID autenticado sem membership leu 0 organizações, 0 contatos, 0 leads e 0 mensagens               | isolamento negativo validado diretamente no banco                                   |
@@ -575,7 +595,7 @@ ser usada para afirmar que a IA está atendendo clientes. O único
 | Mobile dirigido                          | 7 telas críticas em 390×844; overflow horizontal medido = 0                                         | recorte responsivo aprovado; não substitui toda a matriz mobile                     |
 | CRUD online isolado                      | contato, resposta rápida e tarefa: criar/editar/reload/excluir; tarefa concluir/reabrir             | três jornadas aprovadas, sem 4xx/5xx e com limpeza confirmada                       |
 | UAZAPI LID/PN online                     | primeira entrega `ingested`, repetição `duplicate`, DB e Inbox confirmados                          | AUD-009 encerrado; limpeza confirmada                                               |
-| MIME e IA online                         | `octet-stream` convertido em `image/png`; persistência e derivação `done`; texto derivado presente  | AUD-010 encerrado; limpeza confirmada                                               |
+| MIME e IA online                         | `octet-stream` convertido em `image/png`; persistência e derivação `done`; texto derivado presente  | imagem aprovada; AUD-010 áudio permanece aberto                                     |
 | RBAC corretivo online                    | 4 papéis × 6 superfícies × página/API = 48/48; admin com TOTP                                       | AUD-011 encerrado; limpeza confirmada                                               |
 | ACL RPC online                           | `authenticated` 42501; `service_role` aceito                                                        | AUD-012 encerrado; limpeza confirmada                                               |
 | Typecheck e lint arquitetural            | TypeScript, canais e hierarquia de papéis passaram                                                  | checkout corretivo consistente                                                      |

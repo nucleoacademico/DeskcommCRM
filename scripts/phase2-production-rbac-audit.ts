@@ -15,7 +15,7 @@ import path from "node:path";
 import { chromium, type BrowserContext, type Page } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import { generateTotp, msUntilNextTotpWindow } from "../tests/e2e/utils/totp";
+import { generateTotp, msUntilNextTotpWindow } from "./lib/totp";
 
 const COMPOSE_ID = "jZUbIZ73CMq9dewkRrYdu";
 const REQUIRED_CONFIRMATION = "CRM_DESKCOMM_BEHEROES";
